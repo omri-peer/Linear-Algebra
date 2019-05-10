@@ -1,4 +1,8 @@
-#include "vector.h"
+#pragma once
+
+#include "Vector.h"
+#include <iostream>
+#include <vector>
 
 template <class T>
 class Matrix
