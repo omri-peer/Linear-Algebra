@@ -7,44 +7,48 @@
 template <class T>
 class Matrix
 {
-	private:
-		int rows; //num of rows
-		int cols; //num of columns
-		std::vector<vectort> major_row;
+    using vectort = std::vector<T>;
 
-	public:
+private:
+    int rows; // num of rows
+    int cols; // num of columns
+    std::vector<vectort> major_row;
+
+public:
 
 		Matrix<T>() : rows(1), cols(1)
 		{
 			major_row = std::vector<vectort>(1, vectort(1, 0));
-			//major_row.push_back(vectort(1, 0));
 		}
 
 		Matrix<T>(int r, int c) : rows(r), cols(c)
 		{
-			major_row = std::vector<vectort>(rows, vectort(cols, 0));
-		}
+            major_row =
+                std::move(std::vector<vectort>(rows, std::move(vectort(cols, 0))));
+        }
 
-		Matrix<T>(const Matrix& m) : rows(m.rows), cols(m.cols), major_row(m.major_row)
-		{}
+        Matrix<T>(const Matrix& m)
+            : rows(m.rows), cols(m.cols), major_row(std::move(m.major_row))
+        {
+        }
 
-		int get_rows() const
-		{
-			return rows;
-		}
+        int get_rows() const
+        {
+            return rows;
+        }
 
 		int get_cols() const
 		{
 			return cols;
 		}
 
-		const T& operator () (int i, int j) const
-		{
-			return major_row[i][j];
-		}
+        T operator()(int i, int j) const
+        {
+            return major_row[i][j];
+        }
 
-		T& operator () (int i, int j)
-		{
+        T& operator()(int i, int j)
+        {
 			return major_row[i][j];
 		}
 		
@@ -63,23 +67,30 @@ class Matrix
 		Matrix<T> transpose() const
 		{
 			Matrix<T> transed(cols, rows);
-			for (int i = 0; i < rows; ++i)
-			{
-				for(int j = 0; j < cols; ++j)
-				{
-					transed(j, i) = major_row[i][j];
-				}
-			}
-			return transed;
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    transed(j, i) = major_row[i][j];
+                }
+            }
+            return transed;
 		}
 
-		void transpose_in_place(Matrix m){}//sudo TODO
+        void transpose_in_place(Matrix m)
+        {
+            vectort temp;
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < i; j++) {
+                    temp = major_row[i][j];
+                    major_row[i][j] = major_row[j][i];
+                    major_row[j][i] = temp;
+                }
+            }
+        }
 
-		Matrix<T> operator + (const Matrix &m) const
-		{
-			Matrix<T> sum(rows, cols);
-			for (int i = 0; i < rows; ++i)
-			{
+        Matrix<T> operator+(const Matrix& m) const
+        {
+            Matrix<T> sum(rows, cols);
+            for (int i = 0; i < rows; ++i) {
 				for(int j = 0; j < cols; ++j)
 				{
 					sum(i, j) = major_row[i][j] + m(i, j);

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <math.h>
 #include <cmath>
 #include "Matrix.h"
 #include "Vector.h"
@@ -58,20 +57,21 @@ std::vector<Vector<double> > lll(double delta, const std::vector<Vector<double> 
 		}
 		if (ortho[k] * ortho[k] >= (delta - m(k, k - 1) * m(k, k - 1)) * (ortho[k-1] * ortho[k-1]))
 		{
-			++k;
-		}
-		else
-		{
-			temp = our_basis[k];
-			our_basis[k] = our_basis[k - 1];
+            k++;
+        }
+        else {
+            temp = our_basis[k];
+            our_basis[k] = our_basis[k - 1];
 			our_basis[k - 1] = temp;
 
 			ortho = update(size, m, our_basis);
 
-			if (k - 1 > 1) --k;
-			else k = 1;
-		}
-	}
+            if (k - 1 > 1)
+                k--;
+            else
+                k = 1;
+        }
+    }
 
 	return our_basis;
 }
