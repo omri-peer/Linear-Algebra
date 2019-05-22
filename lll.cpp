@@ -12,8 +12,8 @@ std::vector<Vector<double> > gs(const std::vector<Vector<double> > &basis)
 		new_basis.push_back(basis[i]);
 		for (int j = 0; j < i; j++)
 		{
-			new_basis[i] = new_basis[i] - Vector<double>(new_basis[j]*(basis[i]*new_basis[j]/(new_basis[j]*new_basis[j])));
-		}
+            new_basis[i] -= Vector<double>(new_basis[j] * (basis[i] * new_basis[j] / (new_basis[j] * new_basis[j])));
+        }
 	}
 
 	return new_basis;
@@ -51,12 +51,11 @@ std::vector<Vector<double> > lll(double delta, const std::vector<Vector<double> 
 		{
 			if (std::abs(m(k, j)) > 0.5)
 			{
-				our_basis[k] = our_basis[k] - floor(0.5 + m(k, j)) * our_basis[j];
-				ortho = update(size, m, our_basis);
+                our_basis[k] -= round(m(k, j)) * our_basis[j];
+                ortho = update(size, m, our_basis);
 			}
 		}
-		if (ortho[k] * ortho[k] >= (delta - m(k, k - 1) * m(k, k - 1)) * (ortho[k-1] * ortho[k-1]))
-		{
+		if (ortho[k] * ortho[k] >= (delta - m(k, k - 1) * m(k, k - 1)) * (ortho[k-1] * ortho[k-1])) {
             k++;
         }
         else {

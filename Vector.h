@@ -5,108 +5,149 @@
 template <class T>
 class Vector
 {
-    using vector_t = std::vector<T>;
+    using vector_t = std::vector<T>; // entries store the vector's entries, 0 based
 
 private:
     vector_t entries;
 
 public:
-    Vector<T>()
-    {
-        entries = vector_t(1, 0);
-    }
-
-    Vector<T>(int size) : entries(size, 0)
+    // default constructor. Constructs a vector of size 1 with 0
+    explicit Vector() : entries(vector_t(1, 0))
     {
     }
 
-    Vector<T>(const vector_t& v)
+    // parametrized constructor. Constructs a vector of given size, with 0's
+    explicit Vector(int size) : entries(size, 0)
     {
-        entries = std::move(v);
     }
 
-    Vector<T>(const Vector& v)
+    // constructor by const reference to std::vector of entries
+    explicit Vector(const vector_t& ents) : entries(ents)
+    {
+    }
+
+    // constructor by rvalue reference to std::vector of entries
+    explicit Vector(vector_t&& ents) : entries(std::move(ents))
+    {
+    }
+
+    // copy constructor by const reference
+    Vector(const Vector& v) : entries(v.entries)
+    {
+    }
+
+    // move constructor by rvalue reference to std::vector of entries
+    Vector(Vector&& v) noexcept : entries(std::move(v.entries))
+    {
+    }
+
+    // copy assignment by const reference
+    Vector& operator=(const Vector& v)
+    {
+        entries = v.entries;
+    }
+
+    // move assignment by rvalue reference
+    Vector& operator=(Vector&& v) noexcept
     {
         entries = std::move(v.entries);
     }
 
+    // returns the size of a Vector (number of entries)
     int dimension() const
     {
         return entries.size();
     }
 
-		T operator()(int  i) const
-		{
-			return entries[i];
-		}
-		T& operator()(int  i)
-		{
-			return entries[i];
-		}
+    // v(i) is the i-th entry of the vector (for get and set)
+    T operator()(int i) const
+    {
+        return entries[i];
+    }
+    T& operator()(int i)
+    {
+        return entries[i];
+    }
 
-		template <class U>
-		friend Vector<U> operator*(const Vector<U>& v, U scalar);
+    // in-place multiplication by a scalar
+    void operator*=(T scalar)
+    {
+        for (int i = 0; i < dimension(); i++)
+            entries[i] *= scalar;
+    }
 
-		template <class U>
-		friend Vector<U> operator*(U scalar, const Vector<U>& v);
+    // multiplication by a scalar
+    friend Vector operator*(const Vector& v, T scalar)
+    {
+        vector_t new_entries(v.entries);
+        for (int i = 0; i < v.dimension(); i++)
+            new_entries[i] *= scalar;
 
-		T operator*(const Vector<T>& other) const
-		{
-			T res = 0;
-			for (int i = 0; i < dimension(); i++)
-				res += entries[i] * other(i);
+        return Vector(new_entries);
+    }
 
-			return res;
-		}
+    // reversed multiplication by a scalar
+    friend Vector operator*(T scalar, const Vector& v)
+    {
+        return v * scalar;
+    }
 
-		Vector<T> operator+(const Vector& other) const
-		{
-            vector_t new_entries = entries;
-            for (int i = 0; i < dimension(); i++)
-                new_entries[i] += other(i);
+    // inner multiplication
+    T operator*(const Vector& other) const
+    {
+        T res = 0;
+        for (int i = 0; i < dimension(); i++)
+            res += entries[i] * other(i);
 
-            return new_entries;
-        }
+        return res;
+    }
 
-        Vector<T> operator-() const
-		{
-            vector_t new_entries = entries;
-            for (int i = 0; i < dimension(); i++)
-                new_entries[i] = -new_entries[i];
+    // in-place vectors addition
+    void operator+=(const Vector& other)
+    {
+        for (int i = 0; i < dimension(); i++)
+            entries[i] += other(i);
+    }
 
-            return new_entries;
-        }
+    // vectors addition
+    Vector operator+(const Vector& other) const
+    {
+        vector_t new_entries = entries;
+        for (int i = 0; i < dimension(); i++)
+            new_entries[i] += other(i);
 
-        Vector<T> operator-(const Vector& other) const
-		{
-            vector_t new_entries = entries;
-            for (int i = 0; i < dimension(); i++)
-                new_entries[i] -= other(i);
+        return new_entries;
+    }
 
-            return new_entries;
-        }
+    // vector negation
+    Vector operator-() const
+    {
+        vector_t new_entries = entries;
+        for (int i = 0; i < dimension(); i++)
+            new_entries[i] = -new_entries[i];
+
+        return new_entries;
+    }
+
+    // in-place vectors subtraction
+    void operator-=(const Vector& other)
+    {
+        for (int i = 0; i < dimension(); i++)
+            entries[i] -= other(i);
+    }
+
+    // vectors subtraction
+    Vector operator-(const Vector& other) const
+    {
+        vector_t new_entries = entries;
+        for (int i = 0; i < dimension(); i++)
+            new_entries[i] -= other(i);
+
+        return new_entries;
+    }
 };
 
-template <class T>
-Vector<T> operator*(const Vector<T>& v, T scalar)
-{
-    std::vector<T> entries = v.entries;
-    for (int i = 0; i < v.dimension(); i++)
-        entries[i] *= scalar;
-
-    return entries;
-}
-
-template <class T>
-Vector<T> operator*(T scalar, const Vector<T>& v)
-{
-    std::vector<T> entries = v.entries;
-    for (int i = 0; i < v.dimension(); i++)
-        entries[i] *= scalar;
-
-    return entries;
-}
-
+// sending to output stream using <<
 template <class T>
 std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
 {
