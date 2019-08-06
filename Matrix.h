@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector.h"
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -58,6 +59,17 @@ public:
         major_row = std::move(m.major_row);
     }
 
+    // return whether or not the given matrix has the same entries.
+    bool operator==(const Matrix& m) const
+    {
+        return major_row == m.major_row;
+    }
+
+    bool operator!=(const Matrix& m) const
+    {
+        return !(*this == m);
+    }
+
     // returns the number of rows
     int get_rows() const
     {
@@ -85,22 +97,22 @@ public:
     T at(int i, int j) const
     {
         if (i < rows && j < cols && i >= 0 && j >= 0) {
-            return major_row[i][j];
+            return (*this)(i, j);
         }
         else {
             return NULL;
         }
     }
 
-    // changes the matrix to its transpoesd form
-    void transpose_in_place(Matrix m)
+    // changes the matrix to its transposed form
+    void transpose_in_place()
     {
         T temp;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < i; j++) {
-                temp = major_row[i][j];
-                major_row[i][j] = major_row[j][i];
-                major_row[j][i] = temp;
+                temp = (*this)(i, j);
+                (*this)(i, j) = (*this)(j, i);
+                (*this)(j, i) = temp;
             }
         }
     }
@@ -111,7 +123,7 @@ public:
         Matrix transed(cols, rows);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                transed(j, i) = major_row[i][j];
+                transed(j, i) = (*this)(i, j);
             }
         }
         return transed;
@@ -122,7 +134,7 @@ public:
     {
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                major_row[i][j] += m(i, j);
+                (*this)(i, j) += m(i, j);
             }
         }
     }
@@ -133,64 +145,27 @@ public:
         Matrix sum(rows, cols);
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                sum(i, j) = major_row[i][j] + m(i, j);
+                sum(i, j) = (*this)(i, j) + m(i, j);
             }
         }
         return sum;
     }
 
-    // in-place matrices multiplication
-    void operator*=(const Matrix& m)
-    {
-        T tmp_val;
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < m.get_cols(); ++j) {
-                tmp_val = 0;
-                for (int k = 0; k < cols; ++k) {
-                    tmp_val += major_row[i][k] * m(k, j);
-                }
-                major_row[i][j] = tmp_val;
-            }
-        }
-    }
-
     // matrices multiplication
     Matrix operator*(const Matrix& m) const
     {
-        Matrix prod(rows, cols);
+        Matrix prod(rows, m.get_cols());
         T tmp_val;
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < m.get_cols(); ++j) {
                 tmp_val = 0;
                 for (int k = 0; k < cols; ++k) {
-                    tmp_val += major_row[i][k] * m(k, j);
+                    tmp_val += (*this)(i, k) * m(k, j);
                 }
                 prod(i, j) = tmp_val;
             }
         }
         return prod;
-    }
-
-    // in-place matrices difference
-    void operator-=(const Matrix& m)
-    {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; ++j) {
-                major_row[i][j] -= m(i, j);
-            }
-        }
-    }
-
-    // matrices difference
-    Matrix operator-(const Matrix& m) const
-    {
-        Matrix diff(rows, cols);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; ++j) {
-                diff(i, j) -= m(i, j);
-            }
-        }
-        return diff;
     }
 
     // matrix negation
@@ -199,10 +174,32 @@ public:
         Matrix neg(rows, cols);
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                neg(i, j) = -major_row[i][j];
+                neg(i, j) = -(*this)(i, j);
             }
         }
         return neg;
+    }
+
+    // in-place matrices substraction
+    void operator-=(const Matrix& m)
+    {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; ++j) {
+                (*this)(i, j) -= m(i, j);
+            }
+        }
+    }
+
+    // matrices substraction
+    Matrix operator-(const Matrix& m) const
+    {
+        Matrix diff(rows, cols);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; ++j) {
+                diff(i, j) = (*this)(i, j) - m(i, j);
+            }
+        }
+        return diff;
     }
 
     // matrix by vector multiplication
@@ -225,7 +222,7 @@ public:
     {
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                major_row[i][j] *= s;
+                (*this)(i, j) *= s;
             }
         }
     }
@@ -264,44 +261,14 @@ std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
     return strm;
 }
 
-// two matrices with 2**power get two matrices A and B
-template <class T>
-Matrix<T> shell_mul(const Matrix<T>& A, const Matrix<T>& B)
+// max(s: 2^s<=x) x must be nonegative
+int round_up_power_2(int x)
 {
-    if (A.get_cols() != B.get_rows()) {
-        throw std::runtime_error("Very bad sizes!"); // todo
+    int i = 0;
+    while (x > (1 << i)) {
+        ++i;
     }
-    int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
-    int paddedSize = 1 << power;
-
-    // padding
-    Matrix<T> paddedA(paddedSize, paddedSize);
-    Matrix<T> paddedB(paddedSize, paddedSize);
-
-    for (int i = 0; i < A.get_rows(); ++i) {
-        for (int j = 0; j < A.get_cols(); ++j) {
-            paddedA(i, j) = A(i, j);
-        }
-    }
-
-    for (int i = 0; i < B.get_rows(); ++i) {
-        for (int j = 0; j < B.get_cols(); ++j) {
-            paddedB(i, j) = B(i, j);
-        }
-    }
-
-    // calculate the product with mul()
-    Matrix<T> paddedProd = mul(paddedA, paddedB, power);
-
-    // unpad the product
-    Matrix<T> prod(A.get_rows(), B.get_cols());
-    for (int i = 0; i < prod.get_rows(); ++i) {
-        for (int j = 0; j < prod.get_cols(); ++j) {
-            prod(i, j) = paddedProd(i, j);
-        }
-    }
-
-    return prod;
+    return i;
 }
 
 template <class T>
@@ -388,12 +355,42 @@ Matrix<T> mul(const Matrix<T>& A, const Matrix<T>& B, int power)
     return prod;
 }
 
-// max(s: 2^s<=x) x must be nonegative
-int round_up_power_2(int x)
+// two matrices with 2**power get two matrices A and B
+template <class T>
+Matrix<T> shell_mul(const Matrix<T>& A, const Matrix<T>& B)
 {
-    int i = 0;
-    while (x > (1 << i)) {
-        ++i;
+    if (A.get_cols() != B.get_rows()) {
+        throw std::runtime_error("Very bad sizes!"); // todo
     }
-    return i;
+    int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
+    int paddedSize = 1 << power;
+
+    // padding
+    Matrix<T> paddedA(paddedSize, paddedSize);
+    Matrix<T> paddedB(paddedSize, paddedSize);
+
+    for (int i = 0; i < A.get_rows(); ++i) {
+        for (int j = 0; j < A.get_cols(); ++j) {
+            paddedA(i, j) = A(i, j);
+        }
+    }
+
+    for (int i = 0; i < B.get_rows(); ++i) {
+        for (int j = 0; j < B.get_cols(); ++j) {
+            paddedB(i, j) = B(i, j);
+        }
+    }
+
+    // calculate the product with mul()
+    Matrix<T> paddedProd = mul(paddedA, paddedB, power);
+
+    // unpad the product
+    Matrix<T> prod(A.get_rows(), B.get_cols());
+    for (int i = 0; i < prod.get_rows(); ++i) {
+        for (int j = 0; j < prod.get_cols(); ++j) {
+            prod(i, j) = paddedProd(i, j);
+        }
+    }
+
+    return prod;
 }

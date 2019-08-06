@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(LLL)
+project(main)
 set(CMAKE_CXX_STANDARD 14)
 
 include(ExternalProject)
@@ -21,19 +21,19 @@ ExternalProject_Add(googletest
 
 include_directories(.)
 
-add_library(LLLlib SHARED
+add_library(LinearAlgebra SHARED
         lll.cpp
         Matrix.h
         Vector.h
         Manger.h)
 
-add_executable(LLL
+add_executable(main
         lll.cpp
         )
 
-add_dependencies(LLL LLLlib)
-target_link_libraries(LLL LLLlib)
+add_dependencies(main LinearAlgebra)
+target_link_libraries(main LinearAlgebra)
 
-add_executable(vector_tests vector_tests.cpp)
-add_dependencies(vector_tests googletest LLLlib)
-target_link_libraries(vector_tests gtest gtest_main LLLlib)
+add_executable(LinearAlgebra_tests vector_tests.cpp matrix_tests.cpp)
+add_dependencies(LinearAlgebra_tests googletest LinearAlgebra)
+target_link_libraries(LinearAlgebra_tests gtest gtest_main LinearAlgebra)

@@ -83,17 +83,17 @@ public:
     void operator*=(T scalar)
     {
         for (int i = 0; i < dimension(); i++)
-            entries[i] *= scalar;
+            (*this)(i) *= scalar;
     }
 
     // multiplication by a scalar
     friend Vector operator*(const Vector& v, T scalar)
     {
-        vector_t new_entries(v.entries);
+        Vector new_vector(v.entries);
         for (int i = 0; i < v.dimension(); i++)
-            new_entries[i] *= scalar;
+            new_vector(i) *= scalar;
 
-        return Vector(new_entries);
+        return new_vector;
     }
 
     // reversed multiplication by a scalar
@@ -107,7 +107,7 @@ public:
     {
         T res = 0;
         for (int i = 0; i < dimension(); i++)
-            res += entries[i] * other(i);
+            res += (*this)(i)*other(i);
 
         return res;
     }
@@ -116,44 +116,44 @@ public:
     void operator+=(const Vector& other)
     {
         for (int i = 0; i < dimension(); i++)
-            entries[i] += other(i);
+            (*this)(i) += other(i);
     }
 
     // vectors addition
     Vector operator+(const Vector& other) const
     {
-        vector_t new_entries = entries;
+        Vector new_vector(entries);
         for (int i = 0; i < dimension(); i++)
-            new_entries[i] += other(i);
+            new_vector(i) += other(i);
 
-        return Vector(new_entries);
+        return new_vector;
     }
 
     // vector negation
     Vector operator-() const
     {
-        vector_t new_entries = entries;
+        Vector new_vector(entries);
         for (int i = 0; i < dimension(); i++)
-            new_entries[i] = -new_entries[i];
+            new_vector(i) = -new_vector(i);
 
-        return Vector(new_entries);
+        return new_vector;
     }
 
     // in-place vectors subtraction
     void operator-=(const Vector& other)
     {
         for (int i = 0; i < dimension(); i++)
-            entries[i] -= other(i);
+            (*this)(i) -= other(i);
     }
 
     // vectors subtraction
     Vector operator-(const Vector& other) const
     {
-        vector_t new_entries = entries;
+        Vector new_vector(entries);
         for (int i = 0; i < dimension(); i++)
-            new_entries[i] -= other(i);
+            new_vector(i) -= other(i);
 
-        return Vector(new_entries);
+        return new_vector;
     }
 };
 

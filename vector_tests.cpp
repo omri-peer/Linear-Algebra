@@ -42,7 +42,7 @@ TEST(vector, multiplication_by_scalar)
     Vector<double> r2(res2);
 
     EXPECT_EQ(v1 * 3, r1);
-    EXPECT_EQ(v2 * (-1), r2);
+    EXPECT_EQ((-1) * v2, r2);
 }
 
 TEST(vector, multiplication_by_scalar_in_place)
