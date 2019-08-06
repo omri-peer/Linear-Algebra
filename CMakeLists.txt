@@ -11,4 +11,4 @@ include_directories(.)
 add_executable(LLL
         lll.cpp
         Matrix.h
-        Vector.h)
+        Vector.h Manger.h)

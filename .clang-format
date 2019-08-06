@@ -47,4 +47,4 @@ SpacesInParentheses: false
 Cpp11BracedListStyle: true
 Standard: Cpp11
 TabWidth: 4
-UseTab: Never 
+UseTab: Never
