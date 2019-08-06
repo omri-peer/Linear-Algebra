@@ -1,10 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <iostream>
+#include <vector>
 template <class T>
-class Vector
-{
+class Vector {
     using vector_t = std::vector<T>; // entries store the vector's entries, 0 based
 
 private:
@@ -51,6 +50,17 @@ public:
     Vector& operator=(Vector&& v) noexcept
     {
         entries = std::move(v.entries);
+    }
+
+    // returns whether the vectors have the same entries or not
+    bool operator==(const Vector& v) const
+    {
+        return entries == v.entries;
+    }
+
+    bool operator!=(const Vector& v) const
+    {
+        return !(*this == v);
     }
 
     // returns the size of a Vector (number of entries)
@@ -116,7 +126,7 @@ public:
         for (int i = 0; i < dimension(); i++)
             new_entries[i] += other(i);
 
-        return new_entries;
+        return Vector(new_entries);
     }
 
     // vector negation
@@ -126,7 +136,7 @@ public:
         for (int i = 0; i < dimension(); i++)
             new_entries[i] = -new_entries[i];
 
-        return new_entries;
+        return Vector(new_entries);
     }
 
     // in-place vectors subtraction
@@ -143,7 +153,7 @@ public:
         for (int i = 0; i < dimension(); i++)
             new_entries[i] -= other(i);
 
-        return new_entries;
+        return Vector(new_entries);
     }
 };
 
@@ -151,12 +161,11 @@ public:
 template <class T>
 std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
 {
-	strm << "(";
-	for (int i = 0; i < v.dimension()-1; i++)
-	{
-		strm << v(i) << ", ";
-	}
-	strm << v(v.dimension()-1) << ")\n";
+    strm << "(";
+    for (int i = 0; i < v.dimension() - 1; i++) {
+        strm << v(i) << ", ";
+    }
+    strm << v(v.dimension() - 1) << ")\n";
 
-	return strm;
+    return strm;
 }
