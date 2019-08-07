@@ -159,4 +159,29 @@ TEST(lll, LLL)
     EXPECT_EQ(lll_basis[0], res1);
     EXPECT_EQ(lll_basis[1], res2);
     EXPECT_EQ(lll_basis[2], res3);
+
+    Vector<double> u1(3);
+    Vector<double> u2(3);
+    Vector<double> u3(3);
+
+    u1(0) = 69;
+    u1(1) = 26;
+    u1(2) = 15;
+
+    u2(0) = 21;
+    u2(1) = 96;
+    u2(2) = 85;
+
+    u3(0) = 333;
+    u3(1) = -9476;
+    u3(2) = -8694;
+
+    std::vector<Vector<double>> new_basis;
+    new_basis.push_back(u1);
+    new_basis.push_back(u2);
+    new_basis.push_back(u3);
+
+    std::vector<Vector<double>> new_lll_basis = lll(0.75, new_basis);
+
+    EXPECT_EQ(new_lll_basis[0], res);
 }

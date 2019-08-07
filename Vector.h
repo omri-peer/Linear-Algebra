@@ -169,3 +169,5 @@ std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
 
     return strm;
 }
+
+std::vector<Vector<double>> gs(const std::vector<Vector<double>>& basis);
