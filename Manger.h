@@ -1,55 +1,65 @@
 #pragma once
 
 #include <cmath>
+#include <gmp.h>
+#include <gmpxx.h>
 #include <iostream>
 
 class MangerAttacker {
 private:
-    int n;
-    int e;
-    int k;
-    int B;
+    mpz_class n;
+    mpz_class e;
+    mpz_class B;
+
+    static mpz_class ceil_div(const mpz_class& a, const mpz_class& b)
+    {
+        mpz_class cand = a / b;
+        if (cand * b == a) return cand;
+        return cand + 1;
+    }
+
+    bool oracle(const mpz_class& f, const mpz_class& c)
+    {
+        return ((123456 * f) % n) < B;
+    }
 
 public:
-    explicit MangerAttacker(long n, long e) : n(n), e(e), k(ceil(log(n) / log(256))), B(pow(256, k - 1))
+    explicit MangerAttacker(mpz_class n, mpz_class e) : n(std::move(n)), e(std::move(e)), B((mpz_class)1 << this->n.get_str(2).length() / 8 * 8)
     {
-    }
-    bool oracle(long f, long c)
-    {
-        return (123456 * f) % n < B;
     }
 
-    long find_plaintext(long c)
+    mpz_class find_plaintext(const mpz_class& c)
     {
         // Step 1
-        long f1 = 2;
-        long j = 0;
+        mpz_class f1 = 2;
+        mpz_class j = 0;
         while (oracle(f1, c)) {
             f1 *= 2;
             j++;
-            if (j == 10) break;
         }
+
         // Step 2
-        long f2 = floor((n + B) / (double)B) * (f1 / 2);
+        mpz_class f2 = ((n + B) / B) * (f1 / 2);
         while (!oracle(f2, c)) {
             f2 += f1 / 2;
         }
+
         // Step 3
-        long mmin = ceil(n / (double)f2);
-        long mmax = floor((n + B) / (double)f2);
-        long ftmp;
-        long i;
-        long f3;
+        mpz_class mmin = ceil_div(n, f2);
+        mpz_class mmax = (n + B) / f2;
+        mpz_class ftmp;
+        mpz_class i;
+        mpz_class f3;
         while (mmax - mmin > 0) {
-            ftmp = floor((2 * B) / (double)(mmax - mmin));
-            i = floor(ftmp * mmin / (double)n);
-            f3 = ceil(i * n / (double)mmin);
+            ftmp = (2 * B) / (mmax - mmin);
+            i = ftmp * mmin / n;
+            f3 = ceil_div(i * n, mmin);
 
             if (!oracle(f3, c)) {
-                mmin = ceil((i * n + B) / (double)f3);
+                mmin = ceil_div(i * n + B, f3);
             }
             else {
-                mmax = floor((i * n + B) / (double)f3);
+                mmax = (i * n + B) / f3;
             }
         }
 

@@ -170,4 +170,16 @@ std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
     return strm;
 }
 
-std::vector<Vector<double>> gs(const std::vector<Vector<double>>& basis);
+template <class T>
+std::vector<Vector<T>> gs(const std::vector<Vector<T>>& basis)
+{
+    std::vector<Vector<T>> new_basis;
+    for (int i = 0; i < basis.size(); i++) {
+        new_basis.push_back(basis[i]);
+        for (int j = 0; j < i; j++) {
+            new_basis[i] -= Vector<T>(new_basis[j] * (basis[i] * new_basis[j] / (new_basis[j] * new_basis[j])));
+        }
+    }
+
+    return new_basis;
+}

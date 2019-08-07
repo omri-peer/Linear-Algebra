@@ -92,9 +92,9 @@ TEST(lll, GramSchmidt)
 
 TEST(lll, LLL)
 {
-    Vector<double> v1(3);
-    Vector<double> v2(3);
-    Vector<double> v3(3);
+    Vector<mpq_class> v1(3);
+    Vector<mpq_class> v2(3);
+    Vector<mpq_class> v3(3);
 
     v1(0) = 0;
     v1(1) = 10;
@@ -108,17 +108,17 @@ TEST(lll, LLL)
     v3(1) = 30;
     v3(2) = 50;
 
-    std::vector<Vector<double>> basis;
+    std::vector<Vector<mpq_class>> basis;
     basis.push_back(v1);
     basis.push_back(v2);
     basis.push_back(v3);
 
-    Vector<double> res(3);
+    Vector<mpq_class> res(3);
     res(0) = 0;
     res(1) = 0;
     res(2) = 1;
 
-    std::vector<Vector<double>> lll_basis = lll(0.75, basis);
+    std::vector<Vector<mpq_class>> lll_basis = lll(0.75, basis);
 
     EXPECT_EQ(lll_basis[0], res);
 
@@ -134,22 +134,22 @@ TEST(lll, LLL)
     v3(1) = 5;
     v3(2) = 6;
 
-    basis = std::vector<Vector<double>>();
+    basis = std::vector<Vector<mpq_class>>();
     basis.push_back(v1);
     basis.push_back(v2);
     basis.push_back(v3);
 
-    Vector<double> res1(3);
+    Vector<mpq_class> res1(3);
     res1(0) = 0;
     res1(1) = 1;
     res1(2) = 0;
 
-    Vector<double> res2(3);
+    Vector<mpq_class> res2(3);
     res2(0) = 1;
     res2(1) = 0;
     res2(2) = 1;
 
-    Vector<double> res3(3);
+    Vector<mpq_class> res3(3);
     res3(0) = -1;
     res3(1) = 0;
     res3(2) = 2;
@@ -160,9 +160,9 @@ TEST(lll, LLL)
     EXPECT_EQ(lll_basis[1], res2);
     EXPECT_EQ(lll_basis[2], res3);
 
-    Vector<double> u1(3);
-    Vector<double> u2(3);
-    Vector<double> u3(3);
+    Vector<mpq_class> u1(3);
+    Vector<mpq_class> u2(3);
+    Vector<mpq_class> u3(3);
 
     u1(0) = 69;
     u1(1) = 26;
@@ -176,12 +176,12 @@ TEST(lll, LLL)
     u3(1) = -9476;
     u3(2) = -8694;
 
-    std::vector<Vector<double>> new_basis;
+    std::vector<Vector<mpq_class>> new_basis;
     new_basis.push_back(u1);
     new_basis.push_back(u2);
     new_basis.push_back(u3);
 
-    std::vector<Vector<double>> new_lll_basis = lll(0.75, new_basis);
+    std::vector<Vector<mpq_class>> new_lll_basis = lll(0.75, new_basis);
 
     EXPECT_EQ(new_lll_basis[0], res);
 }
