@@ -1,4 +1,5 @@
-#include "Manger.h"
+#pragma once
+
 #include "Matrix.h"
 #include "Vector.h"
 #include <cmath>
@@ -18,6 +19,7 @@ std::vector<Vector<double>> gs(const std::vector<Vector<double>>& basis)
     return new_basis;
 }
 
+// Helping function to the lll algorithm
 std::vector<Vector<double>> update(int size, Matrix<double>& m, const std::vector<Vector<double>>& basis)
 {
     std::vector<Vector<double>> ortho = gs(basis);
@@ -67,40 +69,4 @@ std::vector<Vector<double>> lll(double delta, const std::vector<Vector<double>>&
     }
 
     return our_basis;
-}
-
-int main()
-{
-    int n = 5897 * 6133;
-    int e = 5;
-    MangerAttacker ma(n, e);
-    std::cout << ma.find_plaintext(14508243) << "\n";
-
-    std::vector<double> ent1(3, 0);
-    ent1[0] = 0;
-    ent1[1] = 10;
-    ent1[2] = 2;
-    std::vector<double> ent2(3, 200);
-    ent2[1] = 314;
-    ent2[2] = 503;
-    std::vector<double> ent3(3, 20);
-    ent3[1] = 30;
-    ent3[2] = 50;
-
-    Vector<double> v1(ent1);
-    Vector<double> v2(ent2);
-    Vector<double> v3(ent3);
-
-    std::vector<Vector<double>> basis;
-    basis.push_back(v1);
-    basis.push_back(v2);
-    basis.push_back(v3);
-
-    std::cout << basis[0] << "\n" << basis[1] << "\n" << basis[2] << "\n";
-    std::cout << "\n";
-
-    std::vector<Vector<double>> lll_basis = lll(0.75, basis);
-    std::cout << lll_basis[0] << "\n" << lll_basis[1] << "\n" << lll_basis[2] << "\n";
-
-    return 0;
 }

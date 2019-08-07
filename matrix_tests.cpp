@@ -689,5 +689,5 @@ TEST(matrix, matrix_multiplication_strassen)
     m3(2, 1) = 8;
     m3(2, 2) = 23;
 
-    EXPECT_EQ(shell_mul(m1, m2), m3);
+    EXPECT_EQ(m1.strassen(m2), m3);
 }

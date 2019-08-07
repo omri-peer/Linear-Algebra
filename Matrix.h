@@ -14,6 +14,99 @@ private:
     int cols;                        // num of columns
     std::vector<vector_t> major_row; // the matrix's entries, stored as a vector of rows of the matrix, in row major fashion.
 
+    // max(s: 2^s<=x) x must be nonegative
+    int round_up_power_2(int x)
+    {
+        int i = 0;
+        while (x > (1 << i)) {
+            ++i;
+        }
+        return i;
+    }
+
+    Matrix<T> mul(const Matrix<T>& A, const Matrix<T>& B, int power)
+    {
+        int size = 1 << power;
+        Matrix<T> prod(size, size);
+        if (size == 1) {
+            prod(0, 0) = A(0, 0) * B(0, 0);
+            return prod;
+        }
+        int half_size = size / 2;
+        Matrix<T> A11(half_size, half_size);
+        Matrix<T> A12(half_size, half_size);
+        Matrix<T> A21(half_size, half_size);
+        Matrix<T> A22(half_size, half_size);
+        Matrix<T> B11(half_size, half_size);
+        Matrix<T> B12(half_size, half_size);
+        Matrix<T> B21(half_size, half_size);
+        Matrix<T> B22(half_size, half_size);
+        Matrix<T> C11(half_size, half_size);
+        Matrix<T> C12(half_size, half_size);
+        Matrix<T> C21(half_size, half_size);
+        Matrix<T> C22(half_size, half_size);
+        Matrix<T> M1(half_size, half_size);
+        Matrix<T> M2(half_size, half_size);
+        Matrix<T> M3(half_size, half_size);
+        Matrix<T> M4(half_size, half_size);
+        Matrix<T> M5(half_size, half_size);
+        Matrix<T> M6(half_size, half_size);
+        Matrix<T> M7(half_size, half_size);
+
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                if (i < half_size && j < half_size) {
+                    A11(i, j) = A(i, j);
+                    B11(i, j) = B(i, j);
+                }
+                if (i < half_size && j >= half_size) {
+                    A12(i, j - half_size) = A(i, j);
+                    B12(i, j - half_size) = B(i, j);
+                }
+                if (i >= half_size && j < half_size) {
+                    A21(i - half_size, j) = A(i, j);
+                    B21(i - half_size, j) = B(i, j);
+                }
+                if (i >= half_size && j >= half_size) {
+                    A22(i - half_size, j - half_size) = A(i, j);
+                    B22(i - half_size, j - half_size) = B(i, j);
+                }
+            }
+        }
+
+        M1 = mul(A11 + A22, B11 + B22, power - 1);
+        M2 = mul(A21 + A22, B11, power - 1);
+        M3 = mul(A11, B12 - B22, power - 1);
+        M4 = mul(A22, B21 - B11, power - 1);
+        M5 = mul(A11 + A12, B22, power - 1);
+        M6 = mul(A21 - A11, B11 + B12, power - 1);
+        M7 = mul(A12 - A22, B21 + B22, power - 1);
+
+        C11 = M1 + M4 - M5 + M7;
+        C12 = M3 + M5;
+        C21 = M2 + M4;
+        C22 = M1 - M2 + M3 + M6;
+
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                if (i < half_size && j < half_size) {
+                    prod(i, j) = C11(i, j);
+                }
+                if (i < half_size && j >= half_size) {
+                    prod(i, j) = C12(i, j - half_size);
+                }
+                if (i >= half_size && j < half_size) {
+                    prod(i, j) = C21(i - half_size, j);
+                }
+                if (i >= half_size && j >= half_size) {
+                    prod(i, j) = C22(i - half_size, j - half_size);
+                }
+            }
+        }
+
+        return prod;
+    }
+
 public:
     // default constructor. Constructs a 1X1 with 0
     explicit Matrix() : rows(1), cols(1), major_row(std::vector<vector_t>(1, vector_t(1, 0)))
@@ -168,6 +261,46 @@ public:
         return prod;
     }
 
+    // two matrices with 2**power get two matrices A and B
+    Matrix strassen(const Matrix<T>& B)
+    {
+        Matrix A = *this;
+        if (A.get_cols() != B.get_rows()) {
+            throw std::runtime_error("Very bad sizes!"); // todo
+        }
+        int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
+        int paddedSize = 1 << power;
+
+        // padding
+        Matrix paddedA(paddedSize, paddedSize);
+        Matrix paddedB(paddedSize, paddedSize);
+
+        for (int i = 0; i < A.get_rows(); ++i) {
+            for (int j = 0; j < A.get_cols(); ++j) {
+                paddedA(i, j) = A(i, j);
+            }
+        }
+
+        for (int i = 0; i < B.get_rows(); ++i) {
+            for (int j = 0; j < B.get_cols(); ++j) {
+                paddedB(i, j) = B(i, j);
+            }
+        }
+
+        // calculate the product with mul()
+        Matrix paddedProd = mul(paddedA, paddedB, power);
+
+        // unpad the product
+        Matrix prod(A.get_rows(), B.get_cols());
+        for (int i = 0; i < prod.get_rows(); ++i) {
+            for (int j = 0; j < prod.get_cols(); ++j) {
+                prod(i, j) = paddedProd(i, j);
+            }
+        }
+
+        return prod;
+    }
+
     // matrix negation
     Matrix operator-() const
     {
@@ -259,138 +392,4 @@ std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
     }
     strm << "]" << std::endl;
     return strm;
-}
-
-// max(s: 2^s<=x) x must be nonegative
-int round_up_power_2(int x)
-{
-    int i = 0;
-    while (x > (1 << i)) {
-        ++i;
-    }
-    return i;
-}
-
-template <class T>
-Matrix<T> mul(const Matrix<T>& A, const Matrix<T>& B, int power)
-{
-    int size = 1 << power;
-    Matrix<T> prod(size, size);
-    if (size == 1) {
-        prod(0, 0) = A(0, 0) * B(0, 0);
-        return prod;
-    }
-    int half_size = size / 2;
-    Matrix<T> A11(half_size, half_size);
-    Matrix<T> A12(half_size, half_size);
-    Matrix<T> A21(half_size, half_size);
-    Matrix<T> A22(half_size, half_size);
-    Matrix<T> B11(half_size, half_size);
-    Matrix<T> B12(half_size, half_size);
-    Matrix<T> B21(half_size, half_size);
-    Matrix<T> B22(half_size, half_size);
-    Matrix<T> C11(half_size, half_size);
-    Matrix<T> C12(half_size, half_size);
-    Matrix<T> C21(half_size, half_size);
-    Matrix<T> C22(half_size, half_size);
-    Matrix<T> M1(half_size, half_size);
-    Matrix<T> M2(half_size, half_size);
-    Matrix<T> M3(half_size, half_size);
-    Matrix<T> M4(half_size, half_size);
-    Matrix<T> M5(half_size, half_size);
-    Matrix<T> M6(half_size, half_size);
-    Matrix<T> M7(half_size, half_size);
-
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-            if (i < half_size && j < half_size) {
-                A11(i, j) = A(i, j);
-                B11(i, j) = B(i, j);
-            }
-            if (i < half_size && j >= half_size) {
-                A12(i, j - half_size) = A(i, j);
-                B12(i, j - half_size) = B(i, j);
-            }
-            if (i >= half_size && j < half_size) {
-                A21(i - half_size, j) = A(i, j);
-                B21(i - half_size, j) = B(i, j);
-            }
-            if (i >= half_size && j >= half_size) {
-                A22(i - half_size, j - half_size) = A(i, j);
-                B22(i - half_size, j - half_size) = B(i, j);
-            }
-        }
-    }
-
-    M1 = mul(A11 + A22, B11 + B22, power - 1);
-    M2 = mul(A21 + A22, B11, power - 1);
-    M3 = mul(A11, B12 - B22, power - 1);
-    M4 = mul(A22, B21 - B11, power - 1);
-    M5 = mul(A11 + A12, B22, power - 1);
-    M6 = mul(A21 - A11, B11 + B12, power - 1);
-    M7 = mul(A12 - A22, B21 + B22, power - 1);
-
-    C11 = M1 + M4 - M5 + M7;
-    C12 = M3 + M5;
-    C21 = M2 + M4;
-    C22 = M1 - M2 + M3 + M6;
-
-    for (int i = 0; i < size; ++i) {
-        for (int j = 0; j < size; ++j) {
-            if (i < half_size && j < half_size) {
-                prod(i, j) = C11(i, j);
-            }
-            if (i < half_size && j >= half_size) {
-                prod(i, j) = C12(i, j - half_size);
-            }
-            if (i >= half_size && j < half_size) {
-                prod(i, j) = C21(i - half_size, j);
-            }
-            if (i >= half_size && j >= half_size) {
-                prod(i, j) = C22(i - half_size, j - half_size);
-            }
-        }
-    }
-
-    return prod;
-}
-
-// two matrices with 2**power get two matrices A and B
-template <class T>
-Matrix<T> shell_mul(const Matrix<T>& A, const Matrix<T>& B)
-{
-    if (A.get_cols() != B.get_rows()) {
-        throw std::runtime_error("Very bad sizes!"); // todo
-    }
-    int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
-    int paddedSize = 1 << power;
-
-    // padding
-    Matrix<T> paddedA(paddedSize, paddedSize);
-    Matrix<T> paddedB(paddedSize, paddedSize);
-
-    for (int i = 0; i < A.get_rows(); ++i) {
-        for (int j = 0; j < A.get_cols(); ++j) {
-            paddedA(i, j) = A(i, j);
-        }
-    }
-
-    for (int i = 0; i < B.get_rows(); ++i) {
-        for (int j = 0; j < B.get_cols(); ++j) {
-            paddedB(i, j) = B(i, j);
-        }
-    }
-
-    // calculate the product with mul()
-    Matrix<T> paddedProd = mul(paddedA, paddedB, power);
-
-    // unpad the product
-    Matrix<T> prod(A.get_rows(), B.get_cols());
-    for (int i = 0; i < prod.get_rows(); ++i) {
-        for (int j = 0; j < prod.get_cols(); ++j) {
-            prod(i, j) = paddedProd(i, j);
-        }
-    }
-
-    return prod;
 }
