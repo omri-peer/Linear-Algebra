@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/googletest"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/googletest.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/googletest-complete.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-install.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-download.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-patch.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-configure.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-build.rule"
+		},
+		{
+			"file" : "/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/googletest-prefix/src/googletest-stamp/googletest-skip-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"googletest"
+		],
+		"name" : "googletest"
+	}
+}

@@ -1,0 +1,1 @@
+cmd='/cygdrive/c/Users/User/.CLion2019.1/system/cygwin_cmake/bin/cmake.exe;-DCMAKE_INSTALL_PREFIX=/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/external;-Dgtest_build_tests=OFF;-GCodeBlocks - Unix Makefiles;<SOURCE_DIR><SOURCE_SUBDIR>'
