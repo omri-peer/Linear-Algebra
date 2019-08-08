@@ -107,6 +107,55 @@ private:
         return prod;
     }
 
+    //gets one square matrix
+    Matrix<T> gaussian_elimination(T &det) const
+    {
+        int size = (*this).get_cols();
+        Matrix<T> copy(*this);
+        Matrix<T> inverse(size, size);
+        //set inverse to unit matrix
+        for (int i=0; i<size; ++i)
+        {
+            inverse(i,i)=1;
+        }
+
+        for (int row=0; row<size; ++row)
+        {
+            //if copy(i,i) is 0, swap it with a lower row.
+            for (int lower_row=row+1; lower_row<size && copy(row,row)==0; ++lower_row)
+            {
+                if (copy(lower_row,row)!=0)
+                {
+                    copy.swap_rows(row, lower_row);
+                    inverse.swap_rows(row, lower_row);
+                    det*=(-1);
+                }
+            }
+
+            if (copy(row,row)!=0)
+            {
+                T scalar=copy(row,row);
+                copy.multiply_row_by_scalar(row, (1/scalar));
+                inverse.multiply_row_by_scalar(row, (1/scalar));
+                det*=scalar;
+                //set all other rows to zero in the row-th index
+                for (int other_row=0; other_row<size; ++other_row)
+                {
+                    if(other_row!=row && copy(other_row,row)!=0)
+                    {
+                        scalar=copy(other_row, row);
+                        copy.add_multiplied_row(other_row, row, scalar*(-1));
+                        inverse.add_multiplied_row(other_row, row, scalar*(-1));
+                    }
+                }
+            }
+            else
+            {
+                det=0;
+            }
+        }
+        return inverse;
+    }
 public:
     // default constructor. Constructs a 1X1 with 0
     explicit Matrix() : rows(1), cols(1), major_row(std::vector<vector_t>(1, vector_t(1, 0)))
@@ -375,6 +424,44 @@ public:
     friend Matrix operator*(const T& s, const Matrix& m)
     {
         return m * s;
+    }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////h
+    //gets two rows and swap them, the rows should have a valid range
+    void swap_rows(int i, int j)
+    {
+        vector_t temp(std::move(major_row[i]));
+        major_row[i]=std::move(major_row[j]);
+        major_row[j]=std::move(temp);
+    }
+
+    void multiply_row_by_scalar(int row, T scalar)
+    {
+        for (int i=0; i<(*this).get_cols(); ++i)
+        {
+            (*this)(row,i)*=scalar;
+        }
+    }
+
+    void add_multiplied_row(int row1, int row2, T scalar)
+    {
+        for (int i=0; i<(*this).get_cols(); ++i)
+        {
+            (*this)(row1,i)+=(*this)(row2,i)*scalar;
+        }
+    }
+
+    //gets one square matrix
+    T det() const
+    {
+        T det=1;
+        (*this).gaussian_elimination(det);
+        return det;
+    }
+
+    Matrix find_inverse() const
+    {
+        T det;
+        return (*this).gaussian_elimination(det);
     }
 };
 
