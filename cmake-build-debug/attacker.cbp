@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6"/>
 	<Project>
-		<Option title="attacker"/>
+		<Option title="ATtacker"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
 		<Option virtualFolders="CMake Files\;CMake Files\cmake\;CMake Files\cmake-build-debug\;CMake Files\cmake-build-debug\googletest\;CMake Files\cmake-build-debug\googletest\googletest-src\;CMake Files\cmake-build-debug\googletest\googletest-src\googlemock\;CMake Files\cmake-build-debug\googletest\googletest-src\googlemock\cmake\;CMake Files\cmake-build-debug\googletest\googletest-src\googletest\;CMake Files\cmake-build-debug\googletest\googletest-src\googletest\cmake\;"/>
@@ -42,6 +42,56 @@
 				<Option type="4"/>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ATtacker">
+				<Option output="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/ATtacker" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/include"/>
+					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/."/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 ATtacker"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ATtacker/fast">
+				<Option output="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/ATtacker" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/include"/>
+					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/."/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 ATtacker/fast"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -156,56 +206,6 @@
 				<Option type="4"/>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="attacker">
-				<Option output="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/attacker" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/include"/>
-					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/."/>
-					<Add directory="/usr/include/c++/7"/>
-					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
-					<Add directory="/usr/include/c++/7/backward"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
-					<Add directory="/usr/include/x86_64-linux-gnu"/>
-					<Add directory="/usr/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 attacker"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="attacker/fast">
-				<Option output="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/attacker" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/include"/>
-					<Add directory="/mnt/c/Users/User/CLionProjects/LLL/."/>
-					<Add directory="/usr/include/c++/7"/>
-					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
-					<Add directory="/usr/include/c++/7/backward"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
-					<Add directory="/usr/include/x86_64-linux-gnu"/>
-					<Add directory="/usr/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 attacker/fast"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -467,8 +467,8 @@
 			</Target>
 		</Build>
 		<Unit filename="/mnt/c/Users/User/CLionProjects/LLL/Main.cpp">
+			<Option target="ATtacker"/>
 			<Option target="LinearAlgebra"/>
-			<Option target="attacker"/>
 		</Unit>
 		<Unit filename="/mnt/c/Users/User/CLionProjects/LLL/Manger.h">
 			<Option target="LinearAlgebra"/>

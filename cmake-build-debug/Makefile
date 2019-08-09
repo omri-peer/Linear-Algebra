@@ -168,6 +168,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named ATtacker
+
+# Build rule for target.
+ATtacker: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ATtacker
+.PHONY : ATtacker
+
+# fast build rule for target.
+ATtacker/fast:
+	$(MAKE) -f CMakeFiles/ATtacker.dir/build.make CMakeFiles/ATtacker.dir/build
+.PHONY : ATtacker/fast
+
+#=============================================================================
 # Target rules for targets named LinearAlgebra
 
 # Build rule for target.
@@ -192,19 +205,6 @@ unit_tests: cmake_check_build_system
 unit_tests/fast:
 	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/build
 .PHONY : unit_tests/fast
-
-#=============================================================================
-# Target rules for targets named attacker
-
-# Build rule for target.
-attacker: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 attacker
-.PHONY : attacker
-
-# fast build rule for target.
-attacker/fast:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/build
-.PHONY : attacker/fast
 
 #=============================================================================
 # Target rules for targets named gmock_main
@@ -264,8 +264,8 @@ Main.o: Main.cpp.o
 
 # target to build an object file
 Main.cpp.o:
+	$(MAKE) -f CMakeFiles/ATtacker.dir/build.make CMakeFiles/ATtacker.dir/Main.cpp.o
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.o
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.o
 .PHONY : Main.cpp.o
 
 Main.i: Main.cpp.i
@@ -274,8 +274,8 @@ Main.i: Main.cpp.i
 
 # target to preprocess a source file
 Main.cpp.i:
+	$(MAKE) -f CMakeFiles/ATtacker.dir/build.make CMakeFiles/ATtacker.dir/Main.cpp.i
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.i
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.i
 .PHONY : Main.cpp.i
 
 Main.s: Main.cpp.s
@@ -284,8 +284,8 @@ Main.s: Main.cpp.s
 
 # target to generate assembly for a file
 Main.cpp.s:
+	$(MAKE) -f CMakeFiles/ATtacker.dir/build.make CMakeFiles/ATtacker.dir/Main.cpp.s
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.s
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.s
 .PHONY : Main.cpp.s
 
 Manger_tests.o: Manger_tests.cpp.o
@@ -432,10 +432,10 @@ help:
 	@echo "... install/strip"
 	@echo "... install"
 	@echo "... list_install_components"
+	@echo "... ATtacker"
 	@echo "... LinearAlgebra"
 	@echo "... unit_tests"
 	@echo "... install/local"
-	@echo "... attacker"
 	@echo "... test"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(attacker)
+project(ATtacker)
 set(CMAKE_CXX_STANDARD 14)
 
 include(ExternalProject)
@@ -21,12 +21,12 @@ add_library(LinearAlgebra SHARED
 
 target_link_libraries(LinearAlgebra gmp gmpxx)
 
-# Attacker module
-add_executable(attacker
+# ATtacker module
+add_executable(ATtacker
         Main.cpp)
 
-add_dependencies(attacker LinearAlgebra)
-# target_link_libraries(attacker LinearAlgebra)
+add_dependencies(ATtacker LinearAlgebra)
+# target_link_libraries(ATtacker LinearAlgebra)
 
 # Tests config
 include(cmake/googletest.cmake)
