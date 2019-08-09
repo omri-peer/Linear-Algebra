@@ -1,6 +1,0 @@
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/edit_cache.dir
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/tests.dir
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/attacker.dir
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/googletest.dir
-/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/CMakeFiles/LinearAlgebra.dir

@@ -1,1 +1,0 @@
-/usr/bin/c++.exe -g  -Wl,--enable-auto-import CMakeFiles/attacker.dir/Main.cpp.o  -o attacker.exe -Wl,--out-implib,libattacker.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -L/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/lib libLinearAlgebra.dll.a -lgmp -lgmpxx -llibgmp 

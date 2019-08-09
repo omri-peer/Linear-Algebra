@@ -1,1 +1,0 @@
-/usr/bin/c++.exe -g  -Wl,--enable-auto-import CMakeFiles/LLL.dir/lll.cpp.o  -o LLL.exe -Wl,--out-implib,libLLL.dll.a -Wl,--major-image-version,0,--minor-image-version,0 

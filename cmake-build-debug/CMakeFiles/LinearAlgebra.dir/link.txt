@@ -1,1 +1,0 @@
-/usr/bin/c++.exe -g   -shared -Wl,--enable-auto-import -o cygLinearAlgebra.dll -Wl,--out-implib,libLinearAlgebra.dll.a -Wl,--major-image-version,0,--minor-image-version,0 CMakeFiles/LinearAlgebra.dir/Main.cpp.o  -L/cygdrive/c/Users/User/CLionProjects/LLL/cmake-build-debug/external/lib -lgmp -lgmpxx -llibgmp 
