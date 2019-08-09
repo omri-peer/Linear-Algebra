@@ -56,16 +56,62 @@ CMAKE_BINARY_DIR = /mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
 
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
 
-.PHONY : rebuild_cache/fast
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
+	/usr/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+
+.PHONY : test/fast
 
 # Special rule for the target edit_cache
 edit_cache:
@@ -77,6 +123,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,17 +168,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named tests
+# Target rules for targets named LinearAlgebra
 
 # Build rule for target.
-tests: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 tests
-.PHONY : tests
+LinearAlgebra: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 LinearAlgebra
+.PHONY : LinearAlgebra
 
 # fast build rule for target.
-tests/fast:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/build
-.PHONY : tests/fast
+LinearAlgebra/fast:
+	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/build
+.PHONY : LinearAlgebra/fast
+
+#=============================================================================
+# Target rules for targets named unit_tests
+
+# Build rule for target.
+unit_tests: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 unit_tests
+.PHONY : unit_tests
+
+# fast build rule for target.
+unit_tests/fast:
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/build
+.PHONY : unit_tests/fast
 
 #=============================================================================
 # Target rules for targets named attacker
@@ -137,30 +207,56 @@ attacker/fast:
 .PHONY : attacker/fast
 
 #=============================================================================
-# Target rules for targets named googletest
+# Target rules for targets named gmock_main
 
 # Build rule for target.
-googletest: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 googletest
-.PHONY : googletest
+gmock_main: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gmock_main
+.PHONY : gmock_main
 
 # fast build rule for target.
-googletest/fast:
-	$(MAKE) -f CMakeFiles/googletest.dir/build.make CMakeFiles/googletest.dir/build
-.PHONY : googletest/fast
+gmock_main/fast:
+	$(MAKE) -f googletest/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build.make googletest/googletest-build/googlemock/CMakeFiles/gmock_main.dir/build
+.PHONY : gmock_main/fast
 
 #=============================================================================
-# Target rules for targets named LinearAlgebra
+# Target rules for targets named gmock
 
 # Build rule for target.
-LinearAlgebra: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 LinearAlgebra
-.PHONY : LinearAlgebra
+gmock: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gmock
+.PHONY : gmock
 
 # fast build rule for target.
-LinearAlgebra/fast:
-	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/build
-.PHONY : LinearAlgebra/fast
+gmock/fast:
+	$(MAKE) -f googletest/googletest-build/googlemock/CMakeFiles/gmock.dir/build.make googletest/googletest-build/googlemock/CMakeFiles/gmock.dir/build
+.PHONY : gmock/fast
+
+#=============================================================================
+# Target rules for targets named gtest_main
+
+# Build rule for target.
+gtest_main: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gtest_main
+.PHONY : gtest_main
+
+# fast build rule for target.
+gtest_main/fast:
+	$(MAKE) -f googletest/googletest-build/googlemock/gtest/CMakeFiles/gtest_main.dir/build.make googletest/googletest-build/googlemock/gtest/CMakeFiles/gtest_main.dir/build
+.PHONY : gtest_main/fast
+
+#=============================================================================
+# Target rules for targets named gtest
+
+# Build rule for target.
+gtest: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gtest
+.PHONY : gtest
+
+# fast build rule for target.
+gtest/fast:
+	$(MAKE) -f googletest/googletest-build/googlemock/gtest/CMakeFiles/gtest.dir/build.make googletest/googletest-build/googlemock/gtest/CMakeFiles/gtest.dir/build
+.PHONY : gtest/fast
 
 Main.o: Main.cpp.o
 
@@ -168,8 +264,8 @@ Main.o: Main.cpp.o
 
 # target to build an object file
 Main.cpp.o:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.o
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.o
+	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.o
 .PHONY : Main.cpp.o
 
 Main.i: Main.cpp.i
@@ -178,8 +274,8 @@ Main.i: Main.cpp.i
 
 # target to preprocess a source file
 Main.cpp.i:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.i
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.i
+	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.i
 .PHONY : Main.cpp.i
 
 Main.s: Main.cpp.s
@@ -188,8 +284,8 @@ Main.s: Main.cpp.s
 
 # target to generate assembly for a file
 Main.cpp.s:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.s
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.s
+	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.s
 .PHONY : Main.cpp.s
 
 Manger_tests.o: Manger_tests.cpp.o
@@ -198,7 +294,7 @@ Manger_tests.o: Manger_tests.cpp.o
 
 # target to build an object file
 Manger_tests.cpp.o:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/Manger_tests.cpp.o
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/Manger_tests.cpp.o
 .PHONY : Manger_tests.cpp.o
 
 Manger_tests.i: Manger_tests.cpp.i
@@ -207,7 +303,7 @@ Manger_tests.i: Manger_tests.cpp.i
 
 # target to preprocess a source file
 Manger_tests.cpp.i:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/Manger_tests.cpp.i
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/Manger_tests.cpp.i
 .PHONY : Manger_tests.cpp.i
 
 Manger_tests.s: Manger_tests.cpp.s
@@ -216,7 +312,7 @@ Manger_tests.s: Manger_tests.cpp.s
 
 # target to generate assembly for a file
 Manger_tests.cpp.s:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/Manger_tests.cpp.s
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/Manger_tests.cpp.s
 .PHONY : Manger_tests.cpp.s
 
 lll.o: lll.cpp.o
@@ -225,7 +321,7 @@ lll.o: lll.cpp.o
 
 # target to build an object file
 lll.cpp.o:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll.cpp.o
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll.cpp.o
 .PHONY : lll.cpp.o
 
 lll.i: lll.cpp.i
@@ -234,7 +330,7 @@ lll.i: lll.cpp.i
 
 # target to preprocess a source file
 lll.cpp.i:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll.cpp.i
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll.cpp.i
 .PHONY : lll.cpp.i
 
 lll.s: lll.cpp.s
@@ -243,7 +339,7 @@ lll.s: lll.cpp.s
 
 # target to generate assembly for a file
 lll.cpp.s:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll.cpp.s
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll.cpp.s
 .PHONY : lll.cpp.s
 
 lll_tests.o: lll_tests.cpp.o
@@ -252,7 +348,7 @@ lll_tests.o: lll_tests.cpp.o
 
 # target to build an object file
 lll_tests.cpp.o:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll_tests.cpp.o
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll_tests.cpp.o
 .PHONY : lll_tests.cpp.o
 
 lll_tests.i: lll_tests.cpp.i
@@ -261,7 +357,7 @@ lll_tests.i: lll_tests.cpp.i
 
 # target to preprocess a source file
 lll_tests.cpp.i:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll_tests.cpp.i
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll_tests.cpp.i
 .PHONY : lll_tests.cpp.i
 
 lll_tests.s: lll_tests.cpp.s
@@ -270,7 +366,7 @@ lll_tests.s: lll_tests.cpp.s
 
 # target to generate assembly for a file
 lll_tests.cpp.s:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/lll_tests.cpp.s
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/lll_tests.cpp.s
 .PHONY : lll_tests.cpp.s
 
 matrix_tests.o: matrix_tests.cpp.o
@@ -279,7 +375,7 @@ matrix_tests.o: matrix_tests.cpp.o
 
 # target to build an object file
 matrix_tests.cpp.o:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/matrix_tests.cpp.o
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/matrix_tests.cpp.o
 .PHONY : matrix_tests.cpp.o
 
 matrix_tests.i: matrix_tests.cpp.i
@@ -288,7 +384,7 @@ matrix_tests.i: matrix_tests.cpp.i
 
 # target to preprocess a source file
 matrix_tests.cpp.i:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/matrix_tests.cpp.i
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/matrix_tests.cpp.i
 .PHONY : matrix_tests.cpp.i
 
 matrix_tests.s: matrix_tests.cpp.s
@@ -297,7 +393,7 @@ matrix_tests.s: matrix_tests.cpp.s
 
 # target to generate assembly for a file
 matrix_tests.cpp.s:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/matrix_tests.cpp.s
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/matrix_tests.cpp.s
 .PHONY : matrix_tests.cpp.s
 
 vector_tests.o: vector_tests.cpp.o
@@ -306,7 +402,7 @@ vector_tests.o: vector_tests.cpp.o
 
 # target to build an object file
 vector_tests.cpp.o:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/vector_tests.cpp.o
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/vector_tests.cpp.o
 .PHONY : vector_tests.cpp.o
 
 vector_tests.i: vector_tests.cpp.i
@@ -315,7 +411,7 @@ vector_tests.i: vector_tests.cpp.i
 
 # target to preprocess a source file
 vector_tests.cpp.i:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/vector_tests.cpp.i
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/vector_tests.cpp.i
 .PHONY : vector_tests.cpp.i
 
 vector_tests.s: vector_tests.cpp.s
@@ -324,7 +420,7 @@ vector_tests.s: vector_tests.cpp.s
 
 # target to generate assembly for a file
 vector_tests.cpp.s:
-	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/vector_tests.cpp.s
+	$(MAKE) -f CMakeFiles/unit_tests.dir/build.make CMakeFiles/unit_tests.dir/vector_tests.cpp.s
 .PHONY : vector_tests.cpp.s
 
 # Help Target
@@ -333,12 +429,20 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
-	@echo "... edit_cache"
-	@echo "... tests"
-	@echo "... attacker"
-	@echo "... googletest"
+	@echo "... install/strip"
+	@echo "... install"
+	@echo "... list_install_components"
 	@echo "... LinearAlgebra"
+	@echo "... unit_tests"
+	@echo "... install/local"
+	@echo "... attacker"
+	@echo "... test"
+	@echo "... edit_cache"
+	@echo "... rebuild_cache"
+	@echo "... gmock_main"
+	@echo "... gmock"
+	@echo "... gtest_main"
+	@echo "... gtest"
 	@echo "... Main.o"
 	@echo "... Main.i"
 	@echo "... Main.s"

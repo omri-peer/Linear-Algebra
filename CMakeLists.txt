@@ -9,18 +9,9 @@ set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
-ExternalProject_Add(googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG master
-        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
-        BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION} -Dgtest_build_tests=OFF
-        UPDATE_DISCONNECTED true
-        )
-
-
 include_directories(.)
 
+# Library module
 add_library(LinearAlgebra SHARED
         lll.h
         Matrix.h
@@ -28,15 +19,29 @@ add_library(LinearAlgebra SHARED
         Manger.h
         Main.cpp)
 
+target_link_libraries(LinearAlgebra gmp gmpxx)
+
+# Attacker module
 add_executable(attacker
-        Main.cpp
-        )
+        Main.cpp)
 
 add_dependencies(attacker LinearAlgebra)
-target_link_libraries(attacker LinearAlgebra)
+# target_link_libraries(attacker LinearAlgebra)
 
-add_executable(tests vector_tests.cpp matrix_tests.cpp lll_tests.cpp Manger_tests.cpp lll.cpp)
-add_dependencies(tests googletest LinearAlgebra)
-target_link_libraries(tests gtest gtest_main LinearAlgebra)
+# Tests config
+include(cmake/googletest.cmake)
+fetch_googletest(
+        ${PROJECT_SOURCE_DIR}/cmake
+        ${PROJECT_BINARY_DIR}/googletest
+)
+enable_testing()
 
-target_link_libraries(LinearAlgebra gmp gmpxx libgmp)
+# Test module
+add_executable(unit_tests vector_tests.cpp matrix_tests.cpp lll_tests.cpp Manger_tests.cpp lll.cpp)
+target_link_libraries(unit_tests LinearAlgebra gtest_main pthread)
+# add_test(NAME unit COMMAND ${CMAKE_BINARY_DIR}/unit_tests)
+
+include(GoogleTest)
+gtest_add_tests(TARGET unit_tests)
+
+

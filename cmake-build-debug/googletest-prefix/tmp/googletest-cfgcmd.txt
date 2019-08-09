@@ -1,1 +1,0 @@
-cmd='/usr/bin/cmake;-DCMAKE_INSTALL_PREFIX=/mnt/c/Users/User/CLionProjects/LLL/cmake-build-debug/external;-Dgtest_build_tests=OFF;-GCodeBlocks - Unix Makefiles;<SOURCE_DIR><SOURCE_SUBDIR>'
