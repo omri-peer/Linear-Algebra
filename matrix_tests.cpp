@@ -876,7 +876,7 @@ TEST(matrix, det)
     m1(2, 1) = 8;
     m1(2, 2) = 9;
 
-    EXPECT_EQ((int)m1.det(), -3);
+    EXPECT_EQ((int)m1.get_det(), -3);
 
     Matrix<double> m2(3, 3);
     m2(0, 0) = 1;
@@ -889,7 +889,7 @@ TEST(matrix, det)
     m2(2, 1) = 8;
     m2(2, 2) = 9;
 
-    EXPECT_EQ((int)m2.det(), 0);
+    EXPECT_EQ((int)m2.get_det(), 0);
 }
 
 TEST(matrix, find_inverse)
