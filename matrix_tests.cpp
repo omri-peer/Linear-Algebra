@@ -607,8 +607,13 @@ TEST(matrix, matrix_multiplication)
     n3(1, 0) = -2;
     n3(1, 1) = -5;
 
+    Matrix<double> I(1000, 1000);
+    for (int i = 0; i < 1000; i++)
+        I(i, i) = 1;
+
     EXPECT_EQ(m1 * m2, m3);
     EXPECT_EQ(n1 * n2, n3);
+    EXPECT_EQ(I * I, I);
 }
 
 TEST(matrix, matrix_by_vector_multiplication)
@@ -689,9 +694,36 @@ TEST(matrix, matrix_multiplication_strassen)
     m3(2, 1) = 8;
     m3(2, 2) = 23;
 
-    EXPECT_EQ(m1.strassen(m2), m3);
-}
+    Matrix<double> n1(2, 3);
+    n1(0, 0) = 1;
+    n1(0, 1) = 2;
+    n1(0, 2) = 3;
+    n1(1, 0) = 4;
+    n1(1, 1) = 5;
+    n1(1, 2) = 6;
 
+    Matrix<double> n2(3, 2);
+    n2(0, 0) = 1;
+    n2(0, 1) = 0;
+    n2(1, 0) = 0;
+    n2(1, 1) = -1;
+    n2(2, 0) = -1;
+    n2(2, 1) = 0;
+
+    Matrix<double> n3(2, 2);
+    n3(0, 0) = -2;
+    n3(0, 1) = -2;
+    n3(1, 0) = -2;
+    n3(1, 1) = -5;
+
+    Matrix<double> I(1000, 1000);
+    for (int i = 0; i < 1000; i++)
+        I(i, i) = 1;
+
+    EXPECT_EQ(m1.strassen(m2), m3);
+    EXPECT_EQ(n1.strassen(n2), n3);
+    EXPECT_EQ(I.strassen(I), I);
+}
 
 TEST(matrix, swap_rows)
 {
@@ -874,13 +906,13 @@ TEST(matrix, find_inverse)
     m1(2, 2) = 1;
 
     Matrix<double> m2(3, 3);
-    m2(0, 0) = 1/(double)2;
+    m2(0, 0) = 1 / (double)2;
     m2(0, 1) = 0;
     m2(0, 2) = 0;
-    m2(1, 0) = -1/(double)2;
+    m2(1, 0) = -1 / (double)2;
     m2(1, 1) = 1;
     m2(1, 2) = 0;
-    m2(2, 0) = -1/(double)2;
+    m2(2, 0) = -1 / (double)2;
     m2(2, 1) = 0;
     m2(2, 2) = 1;
 
