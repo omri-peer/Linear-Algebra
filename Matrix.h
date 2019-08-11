@@ -526,11 +526,17 @@ public:
     // in-place matrix by scalar multiplication
     Matrix& operator*=(const T& s)
     {
+        bool det_up = det_updated;   // assignment might mark as dirty
+        bool rank_up = rank_updated; // assignment might mark as dirty
+
         for (unsigned int i = 0; i < rows; ++i) {
             for (unsigned int j = 0; j < cols; ++j) {
                 (*this)(i, j) *= s;
             }
         }
+        det_updated = det_up;
+        rank_updated = rank_up;
+
         if (det_updated) {
             determinant *= pow(s, rows);
         }
