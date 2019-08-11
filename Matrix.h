@@ -86,21 +86,21 @@ private:
     }
 
     // set A1 = A1 + B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void add_in_place(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
+    static void add_to_place(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         for (unsigned int i = 0; i < size; i++) {
             for (unsigned int j = 0; j < size; j++) {
-                A(xA + i, yA + j) += B(xB + i, yB + j);
+                C(xC + i, yC + j) = A(xA + i, yA + j) + B(xB + i, yB + j);
             }
         }
     }
 
     // set A1 = A1 - B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void sub_in_place(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
+    static void sub_to_place(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         for (unsigned int i = 0; i < size; i++) {
             for (unsigned int j = 0; j < size; j++) {
-                A(xA + i, yA + j) -= B(xB + i, yB + j);
+                C(xC + i, yC + j) = A(xA + i, yA + j) - B(xB + i, yB + j);
             }
         }
     }
@@ -169,64 +169,54 @@ private:
         // designated cells: X, Y and M.
 
         // M1
-        copy(X, A, 0, 0, xA, yA, half_size);
-        add_in_place(X, A, 0, 0, xA + half_size, yA + half_size, half_size);
-        copy(Y, B, 0, 0, xB, yB, half_size);
-        add_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
+        add_to_place(A, A, X, xA, yA, xA + half_size, yA + half_size, 0, 0, half_size);
+        add_to_place(B, B, Y, xB, yB, xB + half_size, yB + half_size, 0, 0, half_size);
 
-        sub_in_place(C, C, xC + half_size, yC + half_size, xC, yC, half_size);
+        sub_to_place(C, C, C, xC + half_size, yC + half_size, xC, yC, xC + half_size, yC + half_size, half_size);
         add_mul(X, Y, C, 0, 0, 0, 0, xC, yC, half_size);
-        add_in_place(C, C, xC + half_size, yC + half_size, xC, yC, half_size);
+        add_to_place(C, C, C, xC + half_size, yC + half_size, xC, yC, xC + half_size, yC + half_size, half_size);
 
         // M2
-        copy(X, A, 0, 0, xA + half_size, yA, half_size);
-        add_in_place(X, A, 0, 0, xA + half_size, yA + half_size, half_size);
+        add_to_place(A, A, X, xA + half_size, yA, xA + half_size, yA + half_size, 0, 0, half_size);
 
         Y *= 0;
         add_mul(X, B, Y, 0, 0, xB, yB, 0, 0, half_size);
-        add_in_place(C, Y, xC + half_size, yC, 0, 0, half_size);
-        sub_in_place(C, Y, xC + half_size, yC + half_size, 0, 0, half_size);
+        add_to_place(C, Y, C, xC + half_size, yC, 0, 0, xC + half_size, yC, half_size);
+        sub_to_place(C, Y, C, xC + half_size, yC + half_size, 0, 0, xC + half_size, yC + half_size, half_size);
 
         // M3
-        copy(Y, B, 0, 0, xB, yB + half_size, half_size);
-        sub_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
+        sub_to_place(B, B, Y, xB, yB + half_size, xB + half_size, yB + half_size, 0, 0, half_size);
 
         X *= 0;
         add_mul(A, Y, X, xA, yA, 0, 0, 0, 0, half_size);
-        add_in_place(C, X, xC, yC + half_size, 0, 0, half_size);
-        add_in_place(C, X, xC + half_size, yC + half_size, 0, 0, half_size);
+        add_to_place(C, X, C, xC, yC + half_size, 0, 0, xC, yC + half_size, half_size);
+        add_to_place(C, X, C, xC + half_size, yC + half_size, 0, 0, xC + half_size, yC + half_size, half_size);
 
         // M4
-        copy(Y, B, 0, 0, xB + half_size, yB, half_size);
-        sub_in_place(Y, B, 0, 0, xB, yB, half_size);
+        sub_to_place(B, B, Y, xB + half_size, yB, xB, yB, 0, 0, half_size);
 
         X *= 0;
         add_mul(A, Y, X, xA + half_size, yA + half_size, 0, 0, 0, 0, half_size);
-        add_in_place(C, X, xC, yC, 0, 0, half_size);
-        add_in_place(C, X, xC + half_size, yC, 0, 0, half_size);
+        add_to_place(C, X, C, xC, yC, 0, 0, xC, yC, half_size);
+        add_to_place(C, X, C, xC + half_size, yC, 0, 0, xC + half_size, yC, half_size);
 
         // M5
-        copy(X, A, 0, 0, xA, yA, half_size);
-        add_in_place(X, A, 0, 0, xA, yA + half_size, half_size);
+        add_to_place(A, A, X, xA, yA, xA, yA + half_size, 0, 0, half_size);
 
         Y *= 0;
         add_mul(X, B, Y, 0, 0, xB + half_size, yB + half_size, 0, 0, half_size);
-        sub_in_place(C, Y, xC, yC, 0, 0, half_size);
-        add_in_place(C, Y, xC, yC + half_size, 0, 0, half_size);
+        sub_to_place(C, Y, C, xC, yC, 0, 0, xC, yC, half_size);
+        add_to_place(C, Y, C, xC, yC + half_size, 0, 0, xC, yC + half_size, half_size);
 
         // M6
-        copy(X, A, 0, 0, xA + half_size, yA, half_size);
-        sub_in_place(X, A, 0, 0, xA, yA, half_size);
-        copy(Y, B, 0, 0, xB, yB, half_size);
-        add_in_place(Y, B, 0, 0, xB, yB + half_size, half_size);
+        sub_to_place(A, A, X, xA + half_size, yA, xA, yA, 0, 0, half_size);
+        add_to_place(B, B, Y, xB, yB, xB, yB + half_size, 0, 0, half_size);
 
         add_mul(X, Y, C, 0, 0, 0, 0, xC + half_size, yC + half_size, half_size);
 
         // M7
-        copy(X, A, 0, 0, xA, yA + half_size, half_size);
-        sub_in_place(X, A, 0, 0, xA + half_size, yA + half_size, half_size);
-        copy(Y, B, 0, 0, xB + half_size, yB, half_size);
-        add_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
+        sub_to_place(A, A, X, xA, yA + half_size, xA + half_size, yA + half_size, 0, 0, half_size);
+        add_to_place(B, B, Y, xB + half_size, yB, xB + half_size, yB + half_size, 0, 0, half_size);
 
         add_mul(X, Y, C, 0, 0, 0, 0, xC, yC, half_size);
     }
