@@ -942,3 +942,52 @@ TEST(matrix, find_inverse)
 
     EXPECT_EQ(m3.find_inverse(), m4);
 }
+
+TEST(matrix, rank)
+{
+    Matrix<double> m1(3, 3);
+    m1(0, 0) = 2;
+    m1(0, 1) = 2;
+    m1(0, 2) = 3;
+    m1(1, 0) = 4;
+    m1(1, 1) = 5;
+    m1(1, 2) = 6;
+    m1(2, 0) = 7;
+    m1(2, 1) = 8;
+    m1(2, 2) = 9;
+
+    EXPECT_EQ(m1.get_rank(), 3);
+
+    Matrix<double> m2(3, 3);
+    m2(0, 0) = 1;
+    m2(0, 1) = 2;
+    m2(0, 2) = 3;
+    m2(1, 0) = 4;
+    m2(1, 1) = 5;
+    m2(1, 2) = 6;
+    m2(2, 0) = 7;
+    m2(2, 1) = 8;
+    m2(2, 2) = 9;
+
+    EXPECT_EQ(m2.get_rank(), 2);
+
+    Matrix<double> m3(2, 3);
+    m3(0, 0) = 0;
+    m3(0, 1) = 0;
+    m3(0, 2) = 3;
+    m3(1, 0) = 0;
+    m3(1, 1) = 0;
+    m3(1, 2) = -3;
+
+    EXPECT_EQ(m3.get_rank(), 1);
+
+    Matrix<double> m4(3, 2);
+    m2(0, 0) = 0;
+    m2(0, 1) = 0;
+    m2(1, 0) = 0;
+    m2(1, 1) = 0;
+    m2(2, 0) = 0;
+    m2(2, 1) = 0;
+
+    EXPECT_EQ(m4.get_rank(), 0);
+}

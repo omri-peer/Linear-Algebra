@@ -13,29 +13,28 @@ class Matrix {
 private:
     unsigned int rows; // num of rows
     unsigned int cols; // num of columns
-    T determinant = 0;
-    unsigned int rank = 0;
-    bool det_updated = true;
-    bool rank_updated = true;
-    std::vector<vector_t> data; // the matrix's entries, stored as a vector of rows of the matrix, in row major fashion.
+    mutable T determinant = 0;
+    mutable unsigned int rank = 0;
+    mutable bool det_updated = true;  // dirty bit
+    mutable bool rank_updated = true; // dirty bit
+    std::vector<vector_t> data;       // the matrix's entries, stored as a vector of rows of the matrix, in row major fashion.
 
     // if matrix is square, the function computes the inverse if exists and updates the rank and det
     // if the matrix is not square, it only updates the rank
-    Matrix gaussian_elimination()
+    Matrix gaussian_elimination() const
     {
-        rank = cols;
-        determinant = 1;
-        Matrix copy(*this);
-        Matrix inverse(rows, rows);
-        // set inverse to unit matrix
+        rank = cols;                // later will perform Gaussian elimination and substract 1 for each column without leading element
+        determinant = 1;            // row operations might modify this this value
+        Matrix copy(*this);         // the matrix to perform elimination on
+        Matrix inverse(rows, rows); // return value
+        // set inverse to unit matrix. Later will be eliminated in parallel
         for (unsigned int i = 0; i < rows; ++i) {
             inverse(i, i) = 1;
         }
-        int first_non_zero = 0;
-        for (unsigned int row = 0; row < rows && first_non_zero < cols;) {
-            // if copy(i,i) is 0, swap it with a lower row.
-            for (unsigned int lower_row = row + 1; lower_row < rows && copy(row, first_non_zero) == 0; ++lower_row) {
-                if (copy(lower_row, first_non_zero) != 0) {
+        int first_non_zero = 0;                                                                                       // column number in which we expect to find the first nonzero element of some row
+        for (unsigned int row = 0; row < rows && first_non_zero < cols;) {                                            // operate on rows one by one
+            for (unsigned int lower_row = row + 1; lower_row < rows && copy(row, first_non_zero) == 0; ++lower_row) { // if starts with 0, swap it
+                if (copy(lower_row, first_non_zero) != 0) {                                                           // swap the rows and update the data.
                     copy.swap_rows(row, lower_row);
                     inverse.swap_rows(row, lower_row);
                     determinant *= -1;
@@ -43,9 +42,9 @@ private:
             }
 
             if (copy(row, first_non_zero) != 0) {
-                T scalar = copy(row, first_non_zero);
-                copy.multiply_row_by_scalar(row, 1 / scalar);
-                inverse.multiply_row_by_scalar(row, 1 / scalar);
+                T scalar = copy(row, first_non_zero);            // first element
+                copy.multiply_row_by_scalar(row, 1 / scalar);    // start with 1.
+                inverse.multiply_row_by_scalar(row, 1 / scalar); // parallel elimination.
                 determinant *= scalar;
                 // set all other rows to zero in the first_non_zero-th index
                 for (unsigned int other_row = 0; other_row < rows; ++other_row) {
@@ -55,20 +54,20 @@ private:
                         inverse.add_multiplied_row(other_row, row, scalar * (-1));
                     }
                 }
-                ++first_non_zero;
-                ++row;
+                ++first_non_zero; // next
+                ++row;            // next
             }
-            else {
-                determinant = 0;
-                ++first_non_zero;
+            else {                // no row starting (in first_non_zero) with a nonzero element was found
+                determinant = 0;  // not invertible
+                ++first_non_zero; // go on
                 --rank;
             }
         }
 
         rank_updated = true;
         det_updated = true;
-        if (determinant != 0) {
-            inverse.determinant = 1 / determinant;
+        if (determinant != 0) {                    // invertible
+            inverse.determinant = 1 / determinant; // of course
             inverse.det_updated = true;
             inverse.rank = rows;
             inverse.rank_updated = true;
@@ -86,6 +85,7 @@ private:
         return i;
     }
 
+    // set A1 = A1 + B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
     static void add_in_place(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
     {
         for (int i = 0; i < size; i++) {
@@ -95,6 +95,7 @@ private:
         }
     }
 
+    // set A1 = A1 - B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
     static void sub_in_place(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
     {
         for (int i = 0; i < size; i++) {
@@ -104,6 +105,7 @@ private:
         }
     }
 
+    // set A1 = B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
     static void copy(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
     {
         for (int i = 0; i < size; i++) {
@@ -113,22 +115,59 @@ private:
         }
     }
 
+    // help function to Strassen multiplication
+    // it loop unrolls code for multiplying (naively) two 8X8 matrices
     static void base_case8(const Matrix& A, const Matrix& B, Matrix& C, int xA, int yA, int xB, int yB, int xC, int yC);
 
+    // help function to Strassen multiplication
+    // it loop unrolls code for multiplying (naively) two 4X4 matrices
     static void base_case4(const Matrix& paddedA, const Matrix& paddedB, Matrix& paddedProd);
 
+    // help function to Strassen multiplication
+    // it recursively multiplies the square matrices of dimension which is power of two >= 8
+    // this matrices may be given as submatrices of possibly larger matrices A and B, by starting indices and actual size
     static void mul(const Matrix& A, const Matrix& B, Matrix& C, int xA, int yA, int xB, int yB, int xC, int yC, int size)
     {
-        if (size == 8) {
+        // the actual Strassen login: partition to 4 blocks of half size, and recursive operation:
+
+        if (size == 8) { // base case
             Matrix::base_case8(A, B, C, xA, yA, xB, yB, xC, yC);
             return;
         }
 
-        int half_size = size / 2;
+        int half_size = size / 2; // blocks size
 
+        // blocks which are meant to store all the relevant information for the calculations
+        // of the new blocks that will compose the result.
         Matrix X(half_size, half_size);
         Matrix Y(half_size, half_size);
         Matrix M(half_size, half_size);
+
+        // in Strassen's algorithm denote:
+        // M1 = (A11 + A22) * (B11 + B22)
+        // M2 = (A21 + A22) * B11
+        // M3 = A11 * (B12 - B22)
+        // M4 = A22 * (B21 - B11)
+        // M5 = (A11 + A12) * B22
+        // M6 = (A21 - A11) * (B11 + B12)
+        // M7 = (A12 - A22) * (B21 + B22)
+        //
+        // and then:
+        //
+        // C11 = M1 + M4 - M5 + M7
+        // C12 = M3 + M5
+        // C21 = M2 + M4
+        // C22 = M1 - M2 + M3 + M6
+        //
+        // where
+        //
+        //     A11 | A12
+        // A = ----------
+        //     A21 | A22
+        //
+        // and similarly to B and C.
+        // here we don't initialize Aij, Bij and Mi, but instead perform most of them in the
+        // designated cells: X, Y and M.
 
         // M1
         copy(X, A, 0, 0, xA, yA, half_size);
@@ -234,7 +273,7 @@ public:
         det_updated = m.det_updated;
     }
 
-    // move assignment by rvalue reference // need to add col rows det and rank???
+    // move assignment by rvalue reference
     Matrix& operator=(Matrix&& m) noexcept
     {
         data = std::move(m.data);
@@ -248,7 +287,7 @@ public:
     }
 
     // return whether or not the given matrix has the same entries.
-    bool operator==(const Matrix& m)
+    bool operator==(const Matrix& m) const
     {
         bool result = data == m.data;
         if (result) {
@@ -273,17 +312,8 @@ public:
         return result;
     }
 
-    bool operator==(const Matrix& m) const
-    {
-        return data == m.data;
-    }
-
+    // return nor or whether the given matrix has the same entries.
     bool operator!=(const Matrix& m) const
-    {
-        return !(*this == m);
-    }
-
-    bool operator!=(const Matrix& m)
     {
         return !(*this == m);
     }
@@ -300,34 +330,37 @@ public:
         return cols;
     }
 
-    // matrix(i, j) is the matrix's entry at the i'th row and j'th column, zero based (for get and set)
+    // get: matrix(i, j) - the matrix's entry at the i'th row and j'th column, zero based
     const T& operator()(int i, int j) const
     {
         return data[i][j];
     }
 
+    // set: matrix(i, j) - the matrix's entry at the i'th row and j'th column, zero based
     T& operator()(int i, int j)
     {
-        rank_updated = false;
+        rank_updated = false; // entries might change now
         det_updated = false;
         return data[i][j];
     }
 
-    // matrix(i) is the matrix's i'th row, zero based (for get and set)
+    // get: matrix(i) is the matrix's i'th row, zero based
     const vector_t& operator()(unsigned int i) const
     {
         return data[i];
     }
 
+    // set: matrix(i) is the matrix's i'th row, zero based
     vector_t& operator()(unsigned int i)
     {
-        det_updated = false;
+        det_updated = false; // entries might change now
         rank_updated = false;
         return data[i];
     }
 
     // changes the matrix to its transposed form
     // keeps the det and rank unchanged
+    // assumes the matrix is squared!
     void transpose_in_place()
     {
         for (unsigned int i = 0; i < rows; ++i) {
@@ -359,7 +392,7 @@ public:
                 (*this)(i, j) += m(i, j);
             }
         }
-        rank_updated = false;
+        rank_updated = false; // will take time to update - might hurt performance when irrelevant
         det_updated = false;
         return *this;
     }
@@ -396,14 +429,14 @@ public:
         return std::move(prod);
     }
 
-    // two matrices with 2**power get two matrices A and B
+    // faster multiplication of two matrices. Assumes they are mutiplicable.
     Matrix strassen(const Matrix<T>& B)
     {
         Matrix A = *this;
         int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
         int size = 1 << power;
 
-        // padding
+        // padding the matrices by zeroes to be parts of a power of 2 dimensional squared matrices.
         Matrix paddedA(size, size);
         Matrix paddedB(size, size);
 
@@ -420,18 +453,18 @@ public:
         }
 
         Matrix paddedProd = Matrix(size, size);
-        if (size == 1) {
+        if (size == 1) { // case too small to mul
             paddedProd(0, 0) = A(0, 0) * B(0, 0);
         }
 
-        else if (size == 2) {
+        else if (size == 2) { // case too small to mul
             paddedProd(0, 0) = A(0, 0) * B(0, 0) + A(0, 1) * B(1, 0);
             paddedProd(0, 1) = A(0, 0) * B(0, 1) + A(0, 1) * B(1, 1);
             paddedProd(1, 0) = A(1, 0) * B(0, 0) + A(1, 1) * B(1, 0);
             paddedProd(1, 1) = A(1, 0) * B(0, 1) + A(1, 1) * B(1, 1);
         }
 
-        else if (size == 4) {
+        else if (size == 4) { // case too small to mul
             base_case4(paddedA, paddedB, paddedProd);
         }
 
@@ -511,14 +544,12 @@ public:
     // matrix by vector multiplication
     Vector<T> operator*(const Vector<T>& v) const
     {
-        Vector<T> res(this->get_rows());
-        T tmp_val;
+        Vector<T> res(this->get_rows()); // output
         for (int i = 0; i < this->get_rows(); ++i) {
-            tmp_val = 0;
+            res(i) = 0;
             for (int j = 0; j < this->get_cols(); ++j) {
-                tmp_val += (*this)(i, j) * v(j);
+                res(i) += (*this)(i, j) * v(j);
             }
-            res(i) = tmp_val;
         }
         return std::move(res);
     }
@@ -539,30 +570,55 @@ public:
     // gets two rows and swap them, the rows should have a valid range
     void swap_rows(int i, int j)
     {
+        // remember the values so that the "set" operations will not mark them as dirty
+        bool det_up = det_updated;
+        bool rank_up = rank_updated;
+
         std::swap((*this)(i), (*this)(j));
         determinant *= -1;
+
+        det_updated = det_up;
+        rank_updated = rank_up;
     }
 
+    // gets a row of the matrix and a scalar, and multiplies (in place) the row by the scalar.
     void multiply_row_by_scalar(int row, T scalar)
     {
-        for (unsigned int i = 0; i < cols; ++i) {
+        // remember the values so that the "set" operations will not mark them as dirty
+        bool det_up = det_updated;
+        bool rank_up = rank_updated;
+
+        for (unsigned int i = 0; i < cols; ++i) { // multiply the row
             (*this)(row, i) *= scalar;
         }
         determinant *= scalar;
+
+        det_updated = det_up;
         if (scalar == 0) {
             rank_updated = false;
         }
-    }
-
-    void add_multiplied_row(int row1, int row2, T scalar)
-    {
-        for (unsigned int i = 0; i < cols; ++i) {
-            (*this)(row1, i) += (*this)(row2, i) * scalar;
+        else {
+            rank_updated = rank_up;
         }
     }
 
+    // adds a multiplication of some row to another row (in place)
+    void add_multiplied_row(int row1, int row2, T scalar)
+    {
+        // remember the values so that the "set" operations will not mark them as dirty
+        bool det_up = det_updated;
+        bool rank_up = rank_updated;
+
+        for (unsigned int i = 0; i < cols; ++i) {
+            (*this)(row1, i) += (*this)(row2, i) * scalar;
+        }
+
+        det_updated = det_up;
+        rank_updated = rank_up;
+    }
+
     // gets one square matrix
-    T get_det()
+    T get_det() const
     {
         if (!det_updated) {
             gaussian_elimination();
@@ -570,12 +626,12 @@ public:
         return determinant;
     }
     // assumes the matrix has inverse
-    Matrix find_inverse()
+    Matrix find_inverse() const
     {
         return gaussian_elimination();
     }
 
-    unsigned int get_rank()
+    unsigned int get_rank() const
     {
         if (!rank_updated) {
             gaussian_elimination();
@@ -588,15 +644,15 @@ public:
 template <class T>
 std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
 {
-    strm << "[";
+    strm << "["; // formatting nicely
     for (int i = 0; i < m.get_rows(); ++i) {
-        strm << "(";
+        strm << "("; // row opener
         for (int j = 0; j < m.get_cols() - 1; ++j) {
-            strm << m(i, j) << ", ";
+            strm << m(i, j) << ", "; // values seperator
         }
         strm << m(i, m.get_cols() - 1) << ")\n";
     }
-    strm << "]" << std::endl;
+    strm << "]" << std::endl; // end
     return strm;
 }
 
