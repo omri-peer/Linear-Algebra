@@ -242,11 +242,13 @@ public:
     }
 
     // constructor by const reference to std::vector of vector_t (the entries)
+    // assumes the std::vector's in entries are of the same length
     explicit Matrix(const std::vector<vector_t>& entries) : rows(entries.size()), cols(entries[0].size()), data(entries), det_updated(false), rank_updated(false)
     {
     }
 
     // constructor by rvalue reference to std::vector of vector_t (the entries)
+    // assumes the std::vector's in entries are of the same length
     explicit Matrix(std::vector<vector_t>&& entries) : rows(entries.size()), cols(entries[0].size()), data(std::move(entries)), det_updated(false), rank_updated(false)
     {
     }
