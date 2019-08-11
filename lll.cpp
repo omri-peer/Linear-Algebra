@@ -30,7 +30,7 @@ std::vector<Vector<mpq_class>> lll(double delta, const std::vector<Vector<mpq_cl
 
     unsigned int k = 1;
     while (k <= size - 1) {
-        for (unsigned int j = k - 1; j >= 0; --j) {
+        for (int j = k - 1; j >= 0; --j) {
             if (abs(m(k, j)) > 0.5) {
                 our_basis[k] -= (mpq_class)floor((mpf_class)(0.5 + m(k, j))) * our_basis[j];
                 ortho = update(size, m, our_basis);
