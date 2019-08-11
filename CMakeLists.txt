@@ -28,13 +28,6 @@ add_library(LinearAlgebra SHARED
         Manger.h
         Main.cpp)
 
-add_executable(attacker
-        Main.cpp
-        )
-
-add_dependencies(attacker LinearAlgebra)
-target_link_libraries(attacker LinearAlgebra)
-
 add_executable(tests vector_tests.cpp matrix_tests.cpp lll_tests.cpp Manger_tests.cpp lll.cpp)
 add_dependencies(tests googletest LinearAlgebra)
 target_link_libraries(tests gtest gtest_main LinearAlgebra)

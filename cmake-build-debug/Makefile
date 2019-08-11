@@ -124,19 +124,6 @@ tests/fast:
 .PHONY : tests/fast
 
 #=============================================================================
-# Target rules for targets named attacker
-
-# Build rule for target.
-attacker: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 attacker
-.PHONY : attacker
-
-# fast build rule for target.
-attacker/fast:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/build
-.PHONY : attacker/fast
-
-#=============================================================================
 # Target rules for targets named googletest
 
 # Build rule for target.
@@ -168,7 +155,6 @@ Main.o: Main.cpp.o
 
 # target to build an object file
 Main.cpp.o:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.o
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.o
 .PHONY : Main.cpp.o
 
@@ -178,7 +164,6 @@ Main.i: Main.cpp.i
 
 # target to preprocess a source file
 Main.cpp.i:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.i
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.i
 .PHONY : Main.cpp.i
 
@@ -188,7 +173,6 @@ Main.s: Main.cpp.s
 
 # target to generate assembly for a file
 Main.cpp.s:
-	$(MAKE) -f CMakeFiles/attacker.dir/build.make CMakeFiles/attacker.dir/Main.cpp.s
 	$(MAKE) -f CMakeFiles/LinearAlgebra.dir/build.make CMakeFiles/LinearAlgebra.dir/Main.cpp.s
 .PHONY : Main.cpp.s
 
@@ -336,7 +320,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... tests"
-	@echo "... attacker"
 	@echo "... googletest"
 	@echo "... LinearAlgebra"
 	@echo "... Main.o"
