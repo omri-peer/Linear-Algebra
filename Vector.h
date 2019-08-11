@@ -17,7 +17,7 @@ public:
 
     // parametrized constructor. Constructs a vector of given size, with 0's
     // assumes size is positive
-    explicit Vector(int size) : entries(size, 0)
+    explicit Vector(unsigned int size) : entries(size, 0)
     {
     }
 
@@ -65,18 +65,18 @@ public:
     }
 
     // returns the size of a Vector (number of entries)
-    int dimension() const
+    unsigned int dimension() const
     {
         return entries.size();
     }
 
     // v(i) is the i-th entry of the vector (for get and set)
     // both the getter and the setter assume the given index i satisfies 0 <= i < (*this).dimension()
-    T operator()(int i) const
+    T operator()(unsigned int i) const
     {
         return entries[i];
     }
-    T& operator()(int i)
+    T& operator()(unsigned int i)
     {
         return entries[i];
     }
@@ -84,7 +84,7 @@ public:
     // in-place multiplication by a scalar
     void operator*=(T scalar)
     {
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             (*this)(i) *= scalar;
     }
 
@@ -92,7 +92,7 @@ public:
     friend Vector operator*(const Vector& v, T scalar)
     {
         Vector new_vector(v.entries);
-        for (int i = 0; i < v.dimension(); i++)
+        for (unsigned int i = 0; i < v.dimension(); i++)
             new_vector(i) *= scalar;
 
         return std::move(new_vector);
@@ -109,7 +109,7 @@ public:
     T operator*(const Vector& other) const
     {
         T res = 0;
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             res += (*this)(i)*other(i);
 
         return res;
@@ -119,7 +119,7 @@ public:
     // assumes other's dimension is the same as this vector's
     void operator+=(const Vector& other)
     {
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             (*this)(i) += other(i);
     }
 
@@ -128,7 +128,7 @@ public:
     Vector operator+(const Vector& other) const
     {
         Vector new_vector(entries);
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             new_vector(i) += other(i);
 
         return std::move(new_vector);
@@ -138,7 +138,7 @@ public:
     Vector operator-() const
     {
         Vector new_vector(entries);
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             new_vector(i) = -new_vector(i);
 
         return std::move(new_vector);
@@ -148,7 +148,7 @@ public:
     // assumes other's dimension is the same as this vector's
     void operator-=(const Vector& other)
     {
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             (*this)(i) -= other(i);
     }
 
@@ -157,7 +157,7 @@ public:
     Vector operator-(const Vector& other) const
     {
         Vector new_vector(entries);
-        for (int i = 0; i < dimension(); i++)
+        for (unsigned int i = 0; i < dimension(); i++)
             new_vector(i) -= other(i);
 
         return std::move(new_vector);
@@ -169,7 +169,7 @@ template <class T>
 std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
 {
     strm << "(";
-    for (int i = 0; i < v.dimension() - 1; i++) {
+    for (unsigned int i = 0; i < v.dimension() - 1; i++) {
         strm << v(i) << ", ";
     }
     strm << v(v.dimension() - 1) << ")\n";
@@ -184,9 +184,9 @@ template <class T>
 std::vector<Vector<T>> gs(const std::vector<Vector<T>>& basis)
 {
     std::vector<Vector<T>> new_basis;
-    for (int i = 0; i < basis.size(); i++) {
+    for (unsigned int i = 0; i < basis.size(); i++) {
         new_basis.push_back(basis[i]);
-        for (int j = 0; j < i; j++) {
+        for (unsigned int j = 0; j < i; j++) {
             new_basis[i] -= Vector<T>(new_basis[j] * (basis[i] * new_basis[j] / (new_basis[j] * new_basis[j])));
         }
     }

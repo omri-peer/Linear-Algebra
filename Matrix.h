@@ -13,10 +13,10 @@ class Matrix {
 private:
     unsigned int rows; // num of rows
     unsigned int cols; // num of columns
-    mutable T determinant = 0;
+    mutable T determinant = 0; // irrelevant in a non-square matrix
     mutable unsigned int rank = 0;
-    mutable bool det_updated = true;  // dirty bit
-    mutable bool rank_updated = true; // dirty bit
+    mutable bool det_updated = true;  // dirty bit, may still be true in the irrelevant case of a non-square matrix
+    mutable bool rank_updated = true;  // dirty bit
     std::vector<vector_t> data;       // the matrix's entries, stored as a vector of rows of the matrix, in row major fashion.
 
     // if matrix is square, the function computes the inverse if exists and updates the rank and det
@@ -31,7 +31,7 @@ private:
         for (unsigned int i = 0; i < rows; ++i) {
             inverse(i, i) = 1;
         }
-        int first_non_zero = 0;                                                                                       // column number in which we expect to find the first nonzero element of some row
+        unsigned int first_non_zero = 0;                                                                                       // column number in which we expect to find the first nonzero element of some row
         for (unsigned int row = 0; row < rows && first_non_zero < cols;) {                                            // operate on rows one by one
             for (unsigned int lower_row = row + 1; lower_row < rows && copy(row, first_non_zero) == 0; ++lower_row) { // if starts with 0, swap it
                 if (copy(lower_row, first_non_zero) != 0) {                                                           // swap the rows and update the data.
@@ -76,9 +76,9 @@ private:
     }
 
     // max(s: 2^s<=x) x must be nonegative
-    int round_up_power_2(int x)
+    unsigned int round_up_power_2(unsigned int x)
     {
-        int i = 0;
+        unsigned int i = 0;
         while (x > (1 << i)) {
             ++i;
         }
@@ -86,47 +86,47 @@ private:
     }
 
     // set A1 = A1 + B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void add_in_place(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
+    static void add_in_place(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
     {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (unsigned int i = 0; i < size; i++) {
+            for (unsigned int j = 0; j < size; j++) {
                 A(xA + i, yA + j) += B(xB + i, yB + j);
             }
         }
     }
 
     // set A1 = A1 - B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void sub_in_place(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
+    static void sub_in_place(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
     {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (unsigned int i = 0; i < size; i++) {
+            for (unsigned int j = 0; j < size; j++) {
                 A(xA + i, yA + j) -= B(xB + i, yB + j);
             }
         }
     }
 
     // set A1 = B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void copy(Matrix& A, const Matrix& B, int xA, int yA, int xB, int yB, int size)
+    static void copy(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
     {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        for (unsigned int i = 0; i < size; i++) {
+            for (unsigned int j = 0; j < size; j++) {
                 A(xA + i, yA + j) = B(xB + i, yB + j);
             }
         }
     }
 
-    // help function to Strassen multiplication
-    // it loop unrolls code for multiplying (naively) two 8X8 matrices
-    static void base_case8(const Matrix& A, const Matrix& B, Matrix& C, int xA, int yA, int xB, int yB, int xC, int yC);
+    // function just for Strassen multiplication
+    // loop unrolling code for multiplying two 8X8 matrices
+    static void base_case8(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC);
 
-    // help function to Strassen multiplication
-    // it loop unrolls code for multiplying (naively) two 4X4 matrices
+    // function just for Strassen multiplication
+    // loop unrolling code for multiplying two 4X4 matrices
     static void base_case4(const Matrix& paddedA, const Matrix& paddedB, Matrix& paddedProd);
 
-    // help function to Strassen multiplication
-    // it recursively multiplies the square matrices of dimension which is power of two >= 8
-    // this matrices may be given as submatrices of possibly larger matrices A and B, by starting indices and actual size
-    static void mul(const Matrix& A, const Matrix& B, Matrix& C, int xA, int yA, int xB, int yB, int xC, int yC, int size)
+    // function just for Strassen multiplication
+    // recursive multiplication the of square matrices of dimension = power of two >= 8
+    // matrices may be given as submatrices of larger matrices A and B, by starting indices and actual size
+    static void mul(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         // the actual Strassen login: partition to 4 blocks of half size, and recursive operation:
 
@@ -135,7 +135,7 @@ private:
             return;
         }
 
-        int half_size = size / 2; // blocks size
+        unsigned int half_size = size / 2; // blocks size
 
         // blocks which are meant to store all the relevant information for the calculations
         // of the new blocks that will compose the result.
@@ -237,7 +237,7 @@ public:
     }
 
     // constructs an rXc matrix, filled with 0's
-    explicit Matrix(int r, int c) : rows(r), cols(c), data(std::vector<vector_t>(rows, vector_t(cols, 0)))
+    explicit Matrix(unsigned int r, unsigned int c) : rows(r), cols(c), data(std::vector<vector_t>(rows, vector_t(cols, 0)))
     {
     }
 
@@ -288,7 +288,8 @@ public:
         return *this;
     }
 
-    // return whether or not the given matrix has the same entries.
+    // return whether the given matrix has the same entries.
+    // for programmers: it also updates the det or rank if the matrices are equal and one of the has the data up to date.
     bool operator==(const Matrix& m) const
     {
         bool result = data == m.data;
@@ -314,32 +315,34 @@ public:
         return result;
     }
 
-    // return nor or whether the given matrix has the same entries.
+    // return whether the given matrix has the different entries.
     bool operator!=(const Matrix& m) const
     {
         return !(*this == m);
     }
 
     // returns the number of rows
-    int get_rows() const
+    unsigned int get_rows() const
     {
         return rows;
     }
 
     // returns the number of columns
-    int get_cols() const
+    unsigned int get_cols() const
     {
         return cols;
     }
 
     // get: matrix(i, j) - the matrix's entry at the i'th row and j'th column, zero based
-    const T& operator()(int i, int j) const
+    // indices must be in the appropriate range.
+    const T& operator()(unsigned int i, unsigned int j) const
     {
         return data[i][j];
     }
 
     // set: matrix(i, j) - the matrix's entry at the i'th row and j'th column, zero based
-    T& operator()(int i, int j)
+    // indices must be in the appropriate range.
+    T& operator()(unsigned int i, unsigned int j)
     {
         rank_updated = false; // entries might change now
         det_updated = false;
@@ -347,12 +350,14 @@ public:
     }
 
     // get: matrix(i) is the matrix's i'th row, zero based
+    // index should be in the appropriate range.
     const vector_t& operator()(unsigned int i) const
     {
         return data[i];
     }
 
     // set: matrix(i) is the matrix's i'th row, zero based
+    // index should be in the appropriate range.
     vector_t& operator()(unsigned int i)
     {
         det_updated = false; // entries might change now
@@ -361,7 +366,6 @@ public:
     }
 
     // changes the matrix to its transposed form
-    // keeps the det and rank unchanged
     // assumes the matrix is squared!
     void transpose_in_place()
     {
@@ -373,7 +377,6 @@ public:
     }
 
     // returns the transposed matrix.
-    // keeps the det and rank unchanged
     Matrix transpose() const
     {
         Matrix transed(cols, rows);
@@ -386,7 +389,7 @@ public:
     }
 
     // in-place matrices addition
-    // det and rank are dirty
+    // assumes they are the same size.
     Matrix& operator+=(const Matrix& m)
     {
         for (unsigned int i = 0; i < rows; ++i) {
@@ -400,6 +403,7 @@ public:
     }
 
     // matrices addition
+    // assumes they are the same size.
     Matrix operator+(const Matrix& m) const
     {
         Matrix sum(rows, cols);
@@ -412,6 +416,7 @@ public:
     }
 
     // matrices multiplication
+    // assumes they are mutiplicable.
     Matrix operator*(const Matrix& m) const
     {
         Matrix prod(rows, m.get_cols());
@@ -431,25 +436,26 @@ public:
         return std::move(prod);
     }
 
-    // faster multiplication of two matrices. Assumes they are mutiplicable.
+    // faster multiplication of two matrices.
+    // assumes they are mutiplicable.
     Matrix strassen(const Matrix<T>& B)
     {
         Matrix A = *this;
-        int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
-        int size = 1 << power;
+        unsigned int power = round_up_power_2(std::max({A.get_rows(), A.get_cols(), B.get_cols()}));
+        unsigned int size = 1 << power;
 
         // padding the matrices by zeroes to be parts of a power of 2 dimensional squared matrices.
         Matrix paddedA(size, size);
         Matrix paddedB(size, size);
 
-        for (int i = 0; i < A.get_rows(); ++i) {
-            for (int j = 0; j < A.get_cols(); ++j) {
+        for (unsigned int i = 0; i < A.get_rows(); ++i) {
+            for (unsigned int j = 0; j < A.get_cols(); ++j) {
                 paddedA(i, j) = A(i, j);
             }
         }
 
-        for (int i = 0; i < B.get_rows(); ++i) {
-            for (int j = 0; j < B.get_cols(); ++j) {
+        for (unsigned int i = 0; i < B.get_rows(); ++i) {
+            for (unsigned int j = 0; j < B.get_cols(); ++j) {
                 paddedB(i, j) = B(i, j);
             }
         }
@@ -477,8 +483,8 @@ public:
 
         // unpad the product
         Matrix prod = Matrix(A.get_rows(), B.get_cols());
-        for (int i = 0; i < prod.get_rows(); ++i) {
-            for (int j = 0; j < prod.get_cols(); ++j) {
+        for (unsigned int i = 0; i < prod.get_rows(); ++i) {
+            for (unsigned int j = 0; j < prod.get_cols(); ++j) {
                 prod(i, j) = paddedProd(i, j);
             }
         }
@@ -493,14 +499,14 @@ public:
     }
 
     // matrix negation
-    // rank unchanged, det can be updated accordingly
+    // assumes they are the same size.
     Matrix operator-() const
     {
         return (*this) * (-1);
     }
 
     // in-place matrices substraction
-    // rank and det unknown
+    // assumes they are the same size.
     Matrix& operator-=(const Matrix& m)
     {
         for (unsigned int i = 0; i < rows; ++i) {
@@ -514,6 +520,7 @@ public:
     }
 
     // matrices substraction
+    // assumes they are the same size.
     Matrix operator-(const Matrix& m) const
     {
         Matrix diff(rows, cols);
@@ -526,6 +533,7 @@ public:
     }
 
     // in-place matrix by scalar multiplication
+    // assumes they are multiplicable.
     Matrix& operator*=(const T& s)
     {
         bool det_up = det_updated;   // assignment might mark as dirty
@@ -550,12 +558,13 @@ public:
     }
 
     // matrix by vector multiplication
+    // assumes they are multiplicable.
     Vector<T> operator*(const Vector<T>& v) const
     {
         Vector<T> res(this->get_rows()); // output
-        for (int i = 0; i < this->get_rows(); ++i) {
+        for (unsigned int i = 0; i < this->get_rows(); ++i) {
             res(i) = 0;
-            for (int j = 0; j < this->get_cols(); ++j) {
+            for (unsigned int j = 0; j < this->get_cols(); ++j) {
                 res(i) += (*this)(i, j) * v(j);
             }
         }
@@ -575,8 +584,9 @@ public:
         return std::move(m * s);
     }
 
-    // gets two rows and swap them, the rows should have a valid range
-    void swap_rows(int i, int j)
+    // gets two rows and swap them
+    // the rows should have a valid range
+    void swap_rows(unsigned int i, unsigned int j)
     {
         // remember the values so that the "set" operations will not mark them as dirty
         bool det_up = det_updated;
@@ -590,7 +600,7 @@ public:
     }
 
     // gets a row of the matrix and a scalar, and multiplies (in place) the row by the scalar.
-    void multiply_row_by_scalar(int row, T scalar)
+    void multiply_row_by_scalar(unsigned int row, T scalar)
     {
         // remember the values so that the "set" operations will not mark them as dirty
         bool det_up = det_updated;
@@ -611,7 +621,7 @@ public:
     }
 
     // adds a multiplication of some row to another row (in place)
-    void add_multiplied_row(int row1, int row2, T scalar)
+    void add_multiplied_row(unsigned int row1, unsigned int row2, T scalar)
     {
         // remember the values so that the "set" operations will not mark them as dirty
         bool det_up = det_updated;
@@ -625,7 +635,8 @@ public:
         rank_updated = rank_up;
     }
 
-    // gets one square matrix
+    // returns the determinant of a matrix
+    // assumes the matrix is square
     T get_det() const
     {
         if (!det_updated) {
@@ -638,7 +649,7 @@ public:
     {
         return gaussian_elimination();
     }
-
+    //
     unsigned int get_rank() const
     {
         if (!rank_updated) {
@@ -653,9 +664,9 @@ template <class T>
 std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
 {
     strm << "["; // formatting nicely
-    for (int i = 0; i < m.get_rows(); ++i) {
+    for (unsigned int i = 0; i < m.get_rows(); ++i) {
         strm << "("; // row opener
-        for (int j = 0; j < m.get_cols() - 1; ++j) {
+        for (unsigned int j = 0; j < m.get_cols() - 1; ++j) {
             strm << m(i, j) << ", "; // values seperator
         }
         strm << m(i, m.get_cols() - 1) << ")\n";
@@ -665,7 +676,7 @@ std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
 }
 
 template <class T>
-inline void Matrix<T>::base_case8(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, int xA, int yA, int xB, int yB, int xC, int yC)
+inline void Matrix<T>::base_case8(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC)
 {
     C(xC + 0, yC + 0) = A(xA + 0, yA + 0) * B(xB + 0, yB + 0) + A(xA + 0, yA + 1) * B(xB + 1, yB + 0) + A(xA + 0, yA + 2) * B(xB + 2, yB + 0) + A(xA + 0, yA + 3) * B(xB + 3, yB + 0) + A(xA + 0, yA + 4) * B(xB + 4, yB + 0) + A(xA + 0, yA + 5) * B(xB + 5, yB + 0) + A(xA + 0, yA + 6) * B(xB + 6, yB + 0) + A(xA + 0, yA + 7) * B(xB + 7, yB + 0);
     C(xC + 0, yC + 1) = A(xA + 0, yA + 0) * B(xB + 0, yB + 1) + A(xA + 0, yA + 1) * B(xB + 1, yB + 1) + A(xA + 0, yA + 2) * B(xB + 2, yB + 1) + A(xA + 0, yA + 3) * B(xB + 3, yB + 1) + A(xA + 0, yA + 4) * B(xB + 4, yB + 1) + A(xA + 0, yA + 5) * B(xB + 5, yB + 1) + A(xA + 0, yA + 6) * B(xB + 6, yB + 1) + A(xA + 0, yA + 7) * B(xB + 7, yB + 1);

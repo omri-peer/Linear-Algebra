@@ -608,7 +608,7 @@ TEST(matrix, matrix_multiplication)
     n3(1, 1) = -5;
 
     Matrix<double> I(1000, 1000);
-    for (int i = 0; i < 1000; i++)
+    for (unsigned int i = 0; i < 1000; i++)
         I(i, i) = 1;
 
     EXPECT_EQ(m1 * m2, m3);
@@ -717,7 +717,7 @@ TEST(matrix, matrix_multiplication_strassen)
     n3(1, 1) = -5;
 
     Matrix<double> I(1000, 1000);
-    for (int i = 0; i < 1000; i++)
+    for (unsigned int i = 0; i < 1000; i++)
         I(i, i) = 1;
 
     EXPECT_EQ(m1.strassen(m2), m3);
@@ -876,7 +876,7 @@ TEST(matrix, det)
     m1(2, 1) = 8;
     m1(2, 2) = 9;
 
-    EXPECT_EQ((int)m1.get_det(), -3);
+    EXPECT_EQ((unsigned int)m1.get_det(), -3);
 
     Matrix<double> m2(3, 3);
     m2(0, 0) = 1;
@@ -889,7 +889,7 @@ TEST(matrix, det)
     m2(2, 1) = 8;
     m2(2, 2) = 9;
 
-    EXPECT_EQ((int)m2.get_det(), 0);
+    EXPECT_EQ((unsigned int)m2.get_det(), 0);
 }
 
 TEST(matrix, find_inverse)
