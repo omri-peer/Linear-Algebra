@@ -1,5 +1,0 @@
-[generators]
-cmake
-
-[build_requires]
-gtest/1.8.1@bincrafters/stable

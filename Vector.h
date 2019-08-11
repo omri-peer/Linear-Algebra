@@ -4,10 +4,10 @@
 #include <vector>
 template <class T>
 class Vector {
-    using vector_t = std::vector<T>; // entries store the vector's entries, 0 based
+    using vector_t = std::vector<T>;
 
 private:
-    vector_t entries;
+    vector_t entries; // entries store the vector's entries, 0 based
 
 public:
     // default constructor. Constructs a vector of size 1 with 0
@@ -16,6 +16,7 @@ public:
     }
 
     // parametrized constructor. Constructs a vector of given size, with 0's
+    // assumes size is positive
     explicit Vector(int size) : entries(size, 0)
     {
     }
@@ -57,7 +58,7 @@ public:
     {
         return entries == v.entries;
     }
-
+    // returns whether the vectors have different entries or not
     bool operator!=(const Vector& v) const
     {
         return !(*this == v);
@@ -70,6 +71,7 @@ public:
     }
 
     // v(i) is the i-th entry of the vector (for get and set)
+    // both the getter and the setter assume the given index i satisfies 0 <= i < (*this).dimension()
     T operator()(int i) const
     {
         return entries[i];
@@ -93,16 +95,17 @@ public:
         for (int i = 0; i < v.dimension(); i++)
             new_vector(i) *= scalar;
 
-        return new_vector;
+        return std::move(new_vector);
     }
 
-    // reversed multiplication by a scalar
+    // reversed multiplication by a scalar (exactly the same because vector by scalar multiplication is a commutative binary operation)
     friend Vector operator*(T scalar, const Vector& v)
     {
         return v * scalar;
     }
 
     // inner multiplication
+    // assumes other's dimension is the same as this vector's
     T operator*(const Vector& other) const
     {
         T res = 0;
@@ -112,21 +115,23 @@ public:
         return res;
     }
 
-    // in-place vectors addition
+    // in-place vector addition
+    // assumes other's dimension is the same as this vector's
     void operator+=(const Vector& other)
     {
         for (int i = 0; i < dimension(); i++)
             (*this)(i) += other(i);
     }
 
-    // vectors addition
+    // vector addition
+    // assumes other's dimension is the same as this vector's
     Vector operator+(const Vector& other) const
     {
         Vector new_vector(entries);
         for (int i = 0; i < dimension(); i++)
             new_vector(i) += other(i);
 
-        return new_vector;
+        return std::move(new_vector);
     }
 
     // vector negation
@@ -136,24 +141,26 @@ public:
         for (int i = 0; i < dimension(); i++)
             new_vector(i) = -new_vector(i);
 
-        return new_vector;
+        return std::move(new_vector);
     }
 
-    // in-place vectors subtraction
+    // in-place vector subtraction
+    // assumes other's dimension is the same as this vector's
     void operator-=(const Vector& other)
     {
         for (int i = 0; i < dimension(); i++)
             (*this)(i) -= other(i);
     }
 
-    // vectors subtraction
+    // vector subtraction
+    // assumes other's dimension is the same as this vector's
     Vector operator-(const Vector& other) const
     {
         Vector new_vector(entries);
         for (int i = 0; i < dimension(); i++)
             new_vector(i) -= other(i);
 
-        return new_vector;
+        return std::move(new_vector);
     }
 };
 
@@ -170,6 +177,9 @@ std::ostream& operator<<(std::ostream& strm, const Vector<T>& v)
     return strm;
 }
 
+// apply the gram - schmidt algorithm to a given basis - in order to return a new, orthogonal basis, every prefix of which spans the same subspace as the corresponding prefix of the given basis
+// implemented in the naive way
+// assumes all vectors in the given basis are of the same dimension, and that they are all linearly independent
 template <class T>
 std::vector<Vector<T>> gs(const std::vector<Vector<T>>& basis)
 {
@@ -181,5 +191,5 @@ std::vector<Vector<T>> gs(const std::vector<Vector<T>>& basis)
         }
     }
 
-    return new_basis;
+    return std::move(new_basis);
 }
