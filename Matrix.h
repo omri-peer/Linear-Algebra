@@ -126,7 +126,7 @@ private:
     // function just for Strassen multiplication
     // recursive multiplication the of square matrices of dimension = power of two >= 8
     // matrices may be given as submatrices of larger matrices A and B, by starting indices and actual size
-    static void mul(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
+    static void add_mul(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         // the actual Strassen login: partition to 4 blocks of half size, and recursive operation:
 
@@ -141,7 +141,6 @@ private:
         // of the new blocks that will compose the result.
         Matrix X(half_size, half_size);
         Matrix Y(half_size, half_size);
-        Matrix M(half_size, half_size);
 
         // in Strassen's algorithm denote:
         // M1 = (A11 + A22) * (B11 + B22)
@@ -161,7 +160,7 @@ private:
         //
         // where
         //
-        //     A11 | A12
+        //     A11 | A12S
         // A = ----------
         //     A21 | A22
         //
@@ -175,41 +174,45 @@ private:
         copy(Y, B, 0, 0, xB, yB, half_size);
         add_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
 
-        mul(X, Y, M, 0, 0, 0, 0, 0, 0, half_size);
-        copy(C, M, xC + half_size, yC + half_size, 0, 0, half_size);
-        copy(C, M, xC, yC, 0, 0, half_size);
+        sub_in_place(C, C, xC + half_size, yC + half_size, xC, yC, half_size);
+        add_mul(X, Y, C, 0, 0, 0, 0, xC, yC, half_size);
+        add_in_place(C, C, xC + half_size, yC + half_size, xC, yC, half_size);
 
         // M2
         copy(X, A, 0, 0, xA + half_size, yA, half_size);
         add_in_place(X, A, 0, 0, xA + half_size, yA + half_size, half_size);
 
-        mul(X, B, M, 0, 0, xB, yB, 0, 0, half_size);
-        copy(C, M, xC + half_size, yC, 0, 0, half_size);
-        sub_in_place(C, M, xC + half_size, yC + half_size, 0, 0, half_size);
+        Y *= 0;
+        add_mul(X, B, Y, 0, 0, xB, yB, 0, 0, half_size);
+        add_in_place(C, Y, xC + half_size, yC, 0, 0, half_size);
+        sub_in_place(C, Y, xC + half_size, yC + half_size, 0, 0, half_size);
 
         // M3
         copy(Y, B, 0, 0, xB, yB + half_size, half_size);
         sub_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
 
-        mul(A, Y, M, xA, yA, 0, 0, 0, 0, half_size);
-        copy(C, M, xC, yC + half_size, 0, 0, half_size);
-        add_in_place(C, M, xC + half_size, yC + half_size, 0, 0, half_size);
+        X *= 0;
+        add_mul(A, Y, X, xA, yA, 0, 0, 0, 0, half_size);
+        add_in_place(C, X, xC, yC + half_size, 0, 0, half_size);
+        add_in_place(C, X, xC + half_size, yC + half_size, 0, 0, half_size);
 
         // M4
         copy(Y, B, 0, 0, xB + half_size, yB, half_size);
         sub_in_place(Y, B, 0, 0, xB, yB, half_size);
 
-        mul(A, Y, M, xA + half_size, yA + half_size, 0, 0, 0, 0, half_size);
-        add_in_place(C, M, xC, yC, 0, 0, half_size);
-        add_in_place(C, M, xC + half_size, yC, 0, 0, half_size);
+        X *= 0;
+        add_mul(A, Y, X, xA + half_size, yA + half_size, 0, 0, 0, 0, half_size);
+        add_in_place(C, X, xC, yC, 0, 0, half_size);
+        add_in_place(C, X, xC + half_size, yC, 0, 0, half_size);
 
         // M5
         copy(X, A, 0, 0, xA, yA, half_size);
         add_in_place(X, A, 0, 0, xA, yA + half_size, half_size);
 
-        mul(X, B, M, 0, 0, xB + half_size, yB + half_size, 0, 0, half_size);
-        sub_in_place(C, M, xC, yC, 0, 0, half_size);
-        add_in_place(C, M, xC, yC + half_size, 0, 0, half_size);
+        Y *= 0;
+        add_mul(X, B, Y, 0, 0, xB + half_size, yB + half_size, 0, 0, half_size);
+        sub_in_place(C, Y, xC, yC, 0, 0, half_size);
+        add_in_place(C, Y, xC, yC + half_size, 0, 0, half_size);
 
         // M6
         copy(X, A, 0, 0, xA + half_size, yA, half_size);
@@ -217,8 +220,7 @@ private:
         copy(Y, B, 0, 0, xB, yB, half_size);
         add_in_place(Y, B, 0, 0, xB, yB + half_size, half_size);
 
-        mul(X, Y, M, 0, 0, 0, 0, 0, 0, half_size);
-        add_in_place(C, M, xC + half_size, yC + half_size, 0, 0, half_size);
+        add_mul(X, Y, C, 0, 0, 0, 0, xC + half_size, yC + half_size, half_size);
 
         // M7
         copy(X, A, 0, 0, xA, yA + half_size, half_size);
@@ -226,8 +228,7 @@ private:
         copy(Y, B, 0, 0, xB + half_size, yB, half_size);
         add_in_place(Y, B, 0, 0, xB + half_size, yB + half_size, half_size);
 
-        mul(X, Y, M, 0, 0, 0, 0, 0, 0, half_size);
-        add_in_place(C, M, xC, yC, 0, 0, half_size);
+        add_mul(X, Y, C, 0, 0, 0, 0, xC, yC, half_size);
     }
 
 public:
@@ -477,8 +478,8 @@ public:
         }
 
         else {
-            // calculate the product with mul()
-            mul(paddedA, paddedB, paddedProd, 0, 0, 0, 0, 0, 0, size);
+            // calculate the product with add_mul()
+            add_mul(paddedA, paddedB, paddedProd, 0, 0, 0, 0, 0, 0, size);
         }
 
         // unpad the product
@@ -678,70 +679,70 @@ std::ostream& operator<<(std::ostream& strm, const Matrix<T>& m)
 template <class T>
 inline void Matrix<T>::base_case8(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC)
 {
-    C(xC + 0, yC + 0) = A(xA + 0, yA + 0) * B(xB + 0, yB + 0) + A(xA + 0, yA + 1) * B(xB + 1, yB + 0) + A(xA + 0, yA + 2) * B(xB + 2, yB + 0) + A(xA + 0, yA + 3) * B(xB + 3, yB + 0) + A(xA + 0, yA + 4) * B(xB + 4, yB + 0) + A(xA + 0, yA + 5) * B(xB + 5, yB + 0) + A(xA + 0, yA + 6) * B(xB + 6, yB + 0) + A(xA + 0, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 0, yC + 1) = A(xA + 0, yA + 0) * B(xB + 0, yB + 1) + A(xA + 0, yA + 1) * B(xB + 1, yB + 1) + A(xA + 0, yA + 2) * B(xB + 2, yB + 1) + A(xA + 0, yA + 3) * B(xB + 3, yB + 1) + A(xA + 0, yA + 4) * B(xB + 4, yB + 1) + A(xA + 0, yA + 5) * B(xB + 5, yB + 1) + A(xA + 0, yA + 6) * B(xB + 6, yB + 1) + A(xA + 0, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 0, yC + 2) = A(xA + 0, yA + 0) * B(xB + 0, yB + 2) + A(xA + 0, yA + 1) * B(xB + 1, yB + 2) + A(xA + 0, yA + 2) * B(xB + 2, yB + 2) + A(xA + 0, yA + 3) * B(xB + 3, yB + 2) + A(xA + 0, yA + 4) * B(xB + 4, yB + 2) + A(xA + 0, yA + 5) * B(xB + 5, yB + 2) + A(xA + 0, yA + 6) * B(xB + 6, yB + 2) + A(xA + 0, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 0, yC + 3) = A(xA + 0, yA + 0) * B(xB + 0, yB + 3) + A(xA + 0, yA + 1) * B(xB + 1, yB + 3) + A(xA + 0, yA + 2) * B(xB + 2, yB + 3) + A(xA + 0, yA + 3) * B(xB + 3, yB + 3) + A(xA + 0, yA + 4) * B(xB + 4, yB + 3) + A(xA + 0, yA + 5) * B(xB + 5, yB + 3) + A(xA + 0, yA + 6) * B(xB + 6, yB + 3) + A(xA + 0, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 0, yC + 4) = A(xA + 0, yA + 0) * B(xB + 0, yB + 4) + A(xA + 0, yA + 1) * B(xB + 1, yB + 4) + A(xA + 0, yA + 2) * B(xB + 2, yB + 4) + A(xA + 0, yA + 3) * B(xB + 3, yB + 4) + A(xA + 0, yA + 4) * B(xB + 4, yB + 4) + A(xA + 0, yA + 5) * B(xB + 5, yB + 4) + A(xA + 0, yA + 6) * B(xB + 6, yB + 4) + A(xA + 0, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 0, yC + 5) = A(xA + 0, yA + 0) * B(xB + 0, yB + 5) + A(xA + 0, yA + 1) * B(xB + 1, yB + 5) + A(xA + 0, yA + 2) * B(xB + 2, yB + 5) + A(xA + 0, yA + 3) * B(xB + 3, yB + 5) + A(xA + 0, yA + 4) * B(xB + 4, yB + 5) + A(xA + 0, yA + 5) * B(xB + 5, yB + 5) + A(xA + 0, yA + 6) * B(xB + 6, yB + 5) + A(xA + 0, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 0, yC + 6) = A(xA + 0, yA + 0) * B(xB + 0, yB + 6) + A(xA + 0, yA + 1) * B(xB + 1, yB + 6) + A(xA + 0, yA + 2) * B(xB + 2, yB + 6) + A(xA + 0, yA + 3) * B(xB + 3, yB + 6) + A(xA + 0, yA + 4) * B(xB + 4, yB + 6) + A(xA + 0, yA + 5) * B(xB + 5, yB + 6) + A(xA + 0, yA + 6) * B(xB + 6, yB + 6) + A(xA + 0, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 0, yC + 7) = A(xA + 0, yA + 0) * B(xB + 0, yB + 7) + A(xA + 0, yA + 1) * B(xB + 1, yB + 7) + A(xA + 0, yA + 2) * B(xB + 2, yB + 7) + A(xA + 0, yA + 3) * B(xB + 3, yB + 7) + A(xA + 0, yA + 4) * B(xB + 4, yB + 7) + A(xA + 0, yA + 5) * B(xB + 5, yB + 7) + A(xA + 0, yA + 6) * B(xB + 6, yB + 7) + A(xA + 0, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 1, yC + 0) = A(xA + 1, yA + 0) * B(xB + 0, yB + 0) + A(xA + 1, yA + 1) * B(xB + 1, yB + 0) + A(xA + 1, yA + 2) * B(xB + 2, yB + 0) + A(xA + 1, yA + 3) * B(xB + 3, yB + 0) + A(xA + 1, yA + 4) * B(xB + 4, yB + 0) + A(xA + 1, yA + 5) * B(xB + 5, yB + 0) + A(xA + 1, yA + 6) * B(xB + 6, yB + 0) + A(xA + 1, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 1, yC + 1) = A(xA + 1, yA + 0) * B(xB + 0, yB + 1) + A(xA + 1, yA + 1) * B(xB + 1, yB + 1) + A(xA + 1, yA + 2) * B(xB + 2, yB + 1) + A(xA + 1, yA + 3) * B(xB + 3, yB + 1) + A(xA + 1, yA + 4) * B(xB + 4, yB + 1) + A(xA + 1, yA + 5) * B(xB + 5, yB + 1) + A(xA + 1, yA + 6) * B(xB + 6, yB + 1) + A(xA + 1, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 1, yC + 2) = A(xA + 1, yA + 0) * B(xB + 0, yB + 2) + A(xA + 1, yA + 1) * B(xB + 1, yB + 2) + A(xA + 1, yA + 2) * B(xB + 2, yB + 2) + A(xA + 1, yA + 3) * B(xB + 3, yB + 2) + A(xA + 1, yA + 4) * B(xB + 4, yB + 2) + A(xA + 1, yA + 5) * B(xB + 5, yB + 2) + A(xA + 1, yA + 6) * B(xB + 6, yB + 2) + A(xA + 1, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 1, yC + 3) = A(xA + 1, yA + 0) * B(xB + 0, yB + 3) + A(xA + 1, yA + 1) * B(xB + 1, yB + 3) + A(xA + 1, yA + 2) * B(xB + 2, yB + 3) + A(xA + 1, yA + 3) * B(xB + 3, yB + 3) + A(xA + 1, yA + 4) * B(xB + 4, yB + 3) + A(xA + 1, yA + 5) * B(xB + 5, yB + 3) + A(xA + 1, yA + 6) * B(xB + 6, yB + 3) + A(xA + 1, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 1, yC + 4) = A(xA + 1, yA + 0) * B(xB + 0, yB + 4) + A(xA + 1, yA + 1) * B(xB + 1, yB + 4) + A(xA + 1, yA + 2) * B(xB + 2, yB + 4) + A(xA + 1, yA + 3) * B(xB + 3, yB + 4) + A(xA + 1, yA + 4) * B(xB + 4, yB + 4) + A(xA + 1, yA + 5) * B(xB + 5, yB + 4) + A(xA + 1, yA + 6) * B(xB + 6, yB + 4) + A(xA + 1, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 1, yC + 5) = A(xA + 1, yA + 0) * B(xB + 0, yB + 5) + A(xA + 1, yA + 1) * B(xB + 1, yB + 5) + A(xA + 1, yA + 2) * B(xB + 2, yB + 5) + A(xA + 1, yA + 3) * B(xB + 3, yB + 5) + A(xA + 1, yA + 4) * B(xB + 4, yB + 5) + A(xA + 1, yA + 5) * B(xB + 5, yB + 5) + A(xA + 1, yA + 6) * B(xB + 6, yB + 5) + A(xA + 1, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 1, yC + 6) = A(xA + 1, yA + 0) * B(xB + 0, yB + 6) + A(xA + 1, yA + 1) * B(xB + 1, yB + 6) + A(xA + 1, yA + 2) * B(xB + 2, yB + 6) + A(xA + 1, yA + 3) * B(xB + 3, yB + 6) + A(xA + 1, yA + 4) * B(xB + 4, yB + 6) + A(xA + 1, yA + 5) * B(xB + 5, yB + 6) + A(xA + 1, yA + 6) * B(xB + 6, yB + 6) + A(xA + 1, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 1, yC + 7) = A(xA + 1, yA + 0) * B(xB + 0, yB + 7) + A(xA + 1, yA + 1) * B(xB + 1, yB + 7) + A(xA + 1, yA + 2) * B(xB + 2, yB + 7) + A(xA + 1, yA + 3) * B(xB + 3, yB + 7) + A(xA + 1, yA + 4) * B(xB + 4, yB + 7) + A(xA + 1, yA + 5) * B(xB + 5, yB + 7) + A(xA + 1, yA + 6) * B(xB + 6, yB + 7) + A(xA + 1, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 2, yC + 0) = A(xA + 2, yA + 0) * B(xB + 0, yB + 0) + A(xA + 2, yA + 1) * B(xB + 1, yB + 0) + A(xA + 2, yA + 2) * B(xB + 2, yB + 0) + A(xA + 2, yA + 3) * B(xB + 3, yB + 0) + A(xA + 2, yA + 4) * B(xB + 4, yB + 0) + A(xA + 2, yA + 5) * B(xB + 5, yB + 0) + A(xA + 2, yA + 6) * B(xB + 6, yB + 0) + A(xA + 2, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 2, yC + 1) = A(xA + 2, yA + 0) * B(xB + 0, yB + 1) + A(xA + 2, yA + 1) * B(xB + 1, yB + 1) + A(xA + 2, yA + 2) * B(xB + 2, yB + 1) + A(xA + 2, yA + 3) * B(xB + 3, yB + 1) + A(xA + 2, yA + 4) * B(xB + 4, yB + 1) + A(xA + 2, yA + 5) * B(xB + 5, yB + 1) + A(xA + 2, yA + 6) * B(xB + 6, yB + 1) + A(xA + 2, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 2, yC + 2) = A(xA + 2, yA + 0) * B(xB + 0, yB + 2) + A(xA + 2, yA + 1) * B(xB + 1, yB + 2) + A(xA + 2, yA + 2) * B(xB + 2, yB + 2) + A(xA + 2, yA + 3) * B(xB + 3, yB + 2) + A(xA + 2, yA + 4) * B(xB + 4, yB + 2) + A(xA + 2, yA + 5) * B(xB + 5, yB + 2) + A(xA + 2, yA + 6) * B(xB + 6, yB + 2) + A(xA + 2, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 2, yC + 3) = A(xA + 2, yA + 0) * B(xB + 0, yB + 3) + A(xA + 2, yA + 1) * B(xB + 1, yB + 3) + A(xA + 2, yA + 2) * B(xB + 2, yB + 3) + A(xA + 2, yA + 3) * B(xB + 3, yB + 3) + A(xA + 2, yA + 4) * B(xB + 4, yB + 3) + A(xA + 2, yA + 5) * B(xB + 5, yB + 3) + A(xA + 2, yA + 6) * B(xB + 6, yB + 3) + A(xA + 2, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 2, yC + 4) = A(xA + 2, yA + 0) * B(xB + 0, yB + 4) + A(xA + 2, yA + 1) * B(xB + 1, yB + 4) + A(xA + 2, yA + 2) * B(xB + 2, yB + 4) + A(xA + 2, yA + 3) * B(xB + 3, yB + 4) + A(xA + 2, yA + 4) * B(xB + 4, yB + 4) + A(xA + 2, yA + 5) * B(xB + 5, yB + 4) + A(xA + 2, yA + 6) * B(xB + 6, yB + 4) + A(xA + 2, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 2, yC + 5) = A(xA + 2, yA + 0) * B(xB + 0, yB + 5) + A(xA + 2, yA + 1) * B(xB + 1, yB + 5) + A(xA + 2, yA + 2) * B(xB + 2, yB + 5) + A(xA + 2, yA + 3) * B(xB + 3, yB + 5) + A(xA + 2, yA + 4) * B(xB + 4, yB + 5) + A(xA + 2, yA + 5) * B(xB + 5, yB + 5) + A(xA + 2, yA + 6) * B(xB + 6, yB + 5) + A(xA + 2, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 2, yC + 6) = A(xA + 2, yA + 0) * B(xB + 0, yB + 6) + A(xA + 2, yA + 1) * B(xB + 1, yB + 6) + A(xA + 2, yA + 2) * B(xB + 2, yB + 6) + A(xA + 2, yA + 3) * B(xB + 3, yB + 6) + A(xA + 2, yA + 4) * B(xB + 4, yB + 6) + A(xA + 2, yA + 5) * B(xB + 5, yB + 6) + A(xA + 2, yA + 6) * B(xB + 6, yB + 6) + A(xA + 2, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 2, yC + 7) = A(xA + 2, yA + 0) * B(xB + 0, yB + 7) + A(xA + 2, yA + 1) * B(xB + 1, yB + 7) + A(xA + 2, yA + 2) * B(xB + 2, yB + 7) + A(xA + 2, yA + 3) * B(xB + 3, yB + 7) + A(xA + 2, yA + 4) * B(xB + 4, yB + 7) + A(xA + 2, yA + 5) * B(xB + 5, yB + 7) + A(xA + 2, yA + 6) * B(xB + 6, yB + 7) + A(xA + 2, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 3, yC + 0) = A(xA + 3, yA + 0) * B(xB + 0, yB + 0) + A(xA + 3, yA + 1) * B(xB + 1, yB + 0) + A(xA + 3, yA + 2) * B(xB + 2, yB + 0) + A(xA + 3, yA + 3) * B(xB + 3, yB + 0) + A(xA + 3, yA + 4) * B(xB + 4, yB + 0) + A(xA + 3, yA + 5) * B(xB + 5, yB + 0) + A(xA + 3, yA + 6) * B(xB + 6, yB + 0) + A(xA + 3, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 3, yC + 1) = A(xA + 3, yA + 0) * B(xB + 0, yB + 1) + A(xA + 3, yA + 1) * B(xB + 1, yB + 1) + A(xA + 3, yA + 2) * B(xB + 2, yB + 1) + A(xA + 3, yA + 3) * B(xB + 3, yB + 1) + A(xA + 3, yA + 4) * B(xB + 4, yB + 1) + A(xA + 3, yA + 5) * B(xB + 5, yB + 1) + A(xA + 3, yA + 6) * B(xB + 6, yB + 1) + A(xA + 3, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 3, yC + 2) = A(xA + 3, yA + 0) * B(xB + 0, yB + 2) + A(xA + 3, yA + 1) * B(xB + 1, yB + 2) + A(xA + 3, yA + 2) * B(xB + 2, yB + 2) + A(xA + 3, yA + 3) * B(xB + 3, yB + 2) + A(xA + 3, yA + 4) * B(xB + 4, yB + 2) + A(xA + 3, yA + 5) * B(xB + 5, yB + 2) + A(xA + 3, yA + 6) * B(xB + 6, yB + 2) + A(xA + 3, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 3, yC + 3) = A(xA + 3, yA + 0) * B(xB + 0, yB + 3) + A(xA + 3, yA + 1) * B(xB + 1, yB + 3) + A(xA + 3, yA + 2) * B(xB + 2, yB + 3) + A(xA + 3, yA + 3) * B(xB + 3, yB + 3) + A(xA + 3, yA + 4) * B(xB + 4, yB + 3) + A(xA + 3, yA + 5) * B(xB + 5, yB + 3) + A(xA + 3, yA + 6) * B(xB + 6, yB + 3) + A(xA + 3, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 3, yC + 4) = A(xA + 3, yA + 0) * B(xB + 0, yB + 4) + A(xA + 3, yA + 1) * B(xB + 1, yB + 4) + A(xA + 3, yA + 2) * B(xB + 2, yB + 4) + A(xA + 3, yA + 3) * B(xB + 3, yB + 4) + A(xA + 3, yA + 4) * B(xB + 4, yB + 4) + A(xA + 3, yA + 5) * B(xB + 5, yB + 4) + A(xA + 3, yA + 6) * B(xB + 6, yB + 4) + A(xA + 3, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 3, yC + 5) = A(xA + 3, yA + 0) * B(xB + 0, yB + 5) + A(xA + 3, yA + 1) * B(xB + 1, yB + 5) + A(xA + 3, yA + 2) * B(xB + 2, yB + 5) + A(xA + 3, yA + 3) * B(xB + 3, yB + 5) + A(xA + 3, yA + 4) * B(xB + 4, yB + 5) + A(xA + 3, yA + 5) * B(xB + 5, yB + 5) + A(xA + 3, yA + 6) * B(xB + 6, yB + 5) + A(xA + 3, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 3, yC + 6) = A(xA + 3, yA + 0) * B(xB + 0, yB + 6) + A(xA + 3, yA + 1) * B(xB + 1, yB + 6) + A(xA + 3, yA + 2) * B(xB + 2, yB + 6) + A(xA + 3, yA + 3) * B(xB + 3, yB + 6) + A(xA + 3, yA + 4) * B(xB + 4, yB + 6) + A(xA + 3, yA + 5) * B(xB + 5, yB + 6) + A(xA + 3, yA + 6) * B(xB + 6, yB + 6) + A(xA + 3, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 3, yC + 7) = A(xA + 3, yA + 0) * B(xB + 0, yB + 7) + A(xA + 3, yA + 1) * B(xB + 1, yB + 7) + A(xA + 3, yA + 2) * B(xB + 2, yB + 7) + A(xA + 3, yA + 3) * B(xB + 3, yB + 7) + A(xA + 3, yA + 4) * B(xB + 4, yB + 7) + A(xA + 3, yA + 5) * B(xB + 5, yB + 7) + A(xA + 3, yA + 6) * B(xB + 6, yB + 7) + A(xA + 3, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 4, yC + 0) = A(xA + 4, yA + 0) * B(xB + 0, yB + 0) + A(xA + 4, yA + 1) * B(xB + 1, yB + 0) + A(xA + 4, yA + 2) * B(xB + 2, yB + 0) + A(xA + 4, yA + 3) * B(xB + 3, yB + 0) + A(xA + 4, yA + 4) * B(xB + 4, yB + 0) + A(xA + 4, yA + 5) * B(xB + 5, yB + 0) + A(xA + 4, yA + 6) * B(xB + 6, yB + 0) + A(xA + 4, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 4, yC + 1) = A(xA + 4, yA + 0) * B(xB + 0, yB + 1) + A(xA + 4, yA + 1) * B(xB + 1, yB + 1) + A(xA + 4, yA + 2) * B(xB + 2, yB + 1) + A(xA + 4, yA + 3) * B(xB + 3, yB + 1) + A(xA + 4, yA + 4) * B(xB + 4, yB + 1) + A(xA + 4, yA + 5) * B(xB + 5, yB + 1) + A(xA + 4, yA + 6) * B(xB + 6, yB + 1) + A(xA + 4, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 4, yC + 2) = A(xA + 4, yA + 0) * B(xB + 0, yB + 2) + A(xA + 4, yA + 1) * B(xB + 1, yB + 2) + A(xA + 4, yA + 2) * B(xB + 2, yB + 2) + A(xA + 4, yA + 3) * B(xB + 3, yB + 2) + A(xA + 4, yA + 4) * B(xB + 4, yB + 2) + A(xA + 4, yA + 5) * B(xB + 5, yB + 2) + A(xA + 4, yA + 6) * B(xB + 6, yB + 2) + A(xA + 4, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 4, yC + 3) = A(xA + 4, yA + 0) * B(xB + 0, yB + 3) + A(xA + 4, yA + 1) * B(xB + 1, yB + 3) + A(xA + 4, yA + 2) * B(xB + 2, yB + 3) + A(xA + 4, yA + 3) * B(xB + 3, yB + 3) + A(xA + 4, yA + 4) * B(xB + 4, yB + 3) + A(xA + 4, yA + 5) * B(xB + 5, yB + 3) + A(xA + 4, yA + 6) * B(xB + 6, yB + 3) + A(xA + 4, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 4, yC + 4) = A(xA + 4, yA + 0) * B(xB + 0, yB + 4) + A(xA + 4, yA + 1) * B(xB + 1, yB + 4) + A(xA + 4, yA + 2) * B(xB + 2, yB + 4) + A(xA + 4, yA + 3) * B(xB + 3, yB + 4) + A(xA + 4, yA + 4) * B(xB + 4, yB + 4) + A(xA + 4, yA + 5) * B(xB + 5, yB + 4) + A(xA + 4, yA + 6) * B(xB + 6, yB + 4) + A(xA + 4, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 4, yC + 5) = A(xA + 4, yA + 0) * B(xB + 0, yB + 5) + A(xA + 4, yA + 1) * B(xB + 1, yB + 5) + A(xA + 4, yA + 2) * B(xB + 2, yB + 5) + A(xA + 4, yA + 3) * B(xB + 3, yB + 5) + A(xA + 4, yA + 4) * B(xB + 4, yB + 5) + A(xA + 4, yA + 5) * B(xB + 5, yB + 5) + A(xA + 4, yA + 6) * B(xB + 6, yB + 5) + A(xA + 4, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 4, yC + 6) = A(xA + 4, yA + 0) * B(xB + 0, yB + 6) + A(xA + 4, yA + 1) * B(xB + 1, yB + 6) + A(xA + 4, yA + 2) * B(xB + 2, yB + 6) + A(xA + 4, yA + 3) * B(xB + 3, yB + 6) + A(xA + 4, yA + 4) * B(xB + 4, yB + 6) + A(xA + 4, yA + 5) * B(xB + 5, yB + 6) + A(xA + 4, yA + 6) * B(xB + 6, yB + 6) + A(xA + 4, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 4, yC + 7) = A(xA + 4, yA + 0) * B(xB + 0, yB + 7) + A(xA + 4, yA + 1) * B(xB + 1, yB + 7) + A(xA + 4, yA + 2) * B(xB + 2, yB + 7) + A(xA + 4, yA + 3) * B(xB + 3, yB + 7) + A(xA + 4, yA + 4) * B(xB + 4, yB + 7) + A(xA + 4, yA + 5) * B(xB + 5, yB + 7) + A(xA + 4, yA + 6) * B(xB + 6, yB + 7) + A(xA + 4, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 5, yC + 0) = A(xA + 5, yA + 0) * B(xB + 0, yB + 0) + A(xA + 5, yA + 1) * B(xB + 1, yB + 0) + A(xA + 5, yA + 2) * B(xB + 2, yB + 0) + A(xA + 5, yA + 3) * B(xB + 3, yB + 0) + A(xA + 5, yA + 4) * B(xB + 4, yB + 0) + A(xA + 5, yA + 5) * B(xB + 5, yB + 0) + A(xA + 5, yA + 6) * B(xB + 6, yB + 0) + A(xA + 5, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 5, yC + 1) = A(xA + 5, yA + 0) * B(xB + 0, yB + 1) + A(xA + 5, yA + 1) * B(xB + 1, yB + 1) + A(xA + 5, yA + 2) * B(xB + 2, yB + 1) + A(xA + 5, yA + 3) * B(xB + 3, yB + 1) + A(xA + 5, yA + 4) * B(xB + 4, yB + 1) + A(xA + 5, yA + 5) * B(xB + 5, yB + 1) + A(xA + 5, yA + 6) * B(xB + 6, yB + 1) + A(xA + 5, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 5, yC + 2) = A(xA + 5, yA + 0) * B(xB + 0, yB + 2) + A(xA + 5, yA + 1) * B(xB + 1, yB + 2) + A(xA + 5, yA + 2) * B(xB + 2, yB + 2) + A(xA + 5, yA + 3) * B(xB + 3, yB + 2) + A(xA + 5, yA + 4) * B(xB + 4, yB + 2) + A(xA + 5, yA + 5) * B(xB + 5, yB + 2) + A(xA + 5, yA + 6) * B(xB + 6, yB + 2) + A(xA + 5, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 5, yC + 3) = A(xA + 5, yA + 0) * B(xB + 0, yB + 3) + A(xA + 5, yA + 1) * B(xB + 1, yB + 3) + A(xA + 5, yA + 2) * B(xB + 2, yB + 3) + A(xA + 5, yA + 3) * B(xB + 3, yB + 3) + A(xA + 5, yA + 4) * B(xB + 4, yB + 3) + A(xA + 5, yA + 5) * B(xB + 5, yB + 3) + A(xA + 5, yA + 6) * B(xB + 6, yB + 3) + A(xA + 5, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 5, yC + 4) = A(xA + 5, yA + 0) * B(xB + 0, yB + 4) + A(xA + 5, yA + 1) * B(xB + 1, yB + 4) + A(xA + 5, yA + 2) * B(xB + 2, yB + 4) + A(xA + 5, yA + 3) * B(xB + 3, yB + 4) + A(xA + 5, yA + 4) * B(xB + 4, yB + 4) + A(xA + 5, yA + 5) * B(xB + 5, yB + 4) + A(xA + 5, yA + 6) * B(xB + 6, yB + 4) + A(xA + 5, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 5, yC + 5) = A(xA + 5, yA + 0) * B(xB + 0, yB + 5) + A(xA + 5, yA + 1) * B(xB + 1, yB + 5) + A(xA + 5, yA + 2) * B(xB + 2, yB + 5) + A(xA + 5, yA + 3) * B(xB + 3, yB + 5) + A(xA + 5, yA + 4) * B(xB + 4, yB + 5) + A(xA + 5, yA + 5) * B(xB + 5, yB + 5) + A(xA + 5, yA + 6) * B(xB + 6, yB + 5) + A(xA + 5, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 5, yC + 6) = A(xA + 5, yA + 0) * B(xB + 0, yB + 6) + A(xA + 5, yA + 1) * B(xB + 1, yB + 6) + A(xA + 5, yA + 2) * B(xB + 2, yB + 6) + A(xA + 5, yA + 3) * B(xB + 3, yB + 6) + A(xA + 5, yA + 4) * B(xB + 4, yB + 6) + A(xA + 5, yA + 5) * B(xB + 5, yB + 6) + A(xA + 5, yA + 6) * B(xB + 6, yB + 6) + A(xA + 5, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 5, yC + 7) = A(xA + 5, yA + 0) * B(xB + 0, yB + 7) + A(xA + 5, yA + 1) * B(xB + 1, yB + 7) + A(xA + 5, yA + 2) * B(xB + 2, yB + 7) + A(xA + 5, yA + 3) * B(xB + 3, yB + 7) + A(xA + 5, yA + 4) * B(xB + 4, yB + 7) + A(xA + 5, yA + 5) * B(xB + 5, yB + 7) + A(xA + 5, yA + 6) * B(xB + 6, yB + 7) + A(xA + 5, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 6, yC + 0) = A(xA + 6, yA + 0) * B(xB + 0, yB + 0) + A(xA + 6, yA + 1) * B(xB + 1, yB + 0) + A(xA + 6, yA + 2) * B(xB + 2, yB + 0) + A(xA + 6, yA + 3) * B(xB + 3, yB + 0) + A(xA + 6, yA + 4) * B(xB + 4, yB + 0) + A(xA + 6, yA + 5) * B(xB + 5, yB + 0) + A(xA + 6, yA + 6) * B(xB + 6, yB + 0) + A(xA + 6, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 6, yC + 1) = A(xA + 6, yA + 0) * B(xB + 0, yB + 1) + A(xA + 6, yA + 1) * B(xB + 1, yB + 1) + A(xA + 6, yA + 2) * B(xB + 2, yB + 1) + A(xA + 6, yA + 3) * B(xB + 3, yB + 1) + A(xA + 6, yA + 4) * B(xB + 4, yB + 1) + A(xA + 6, yA + 5) * B(xB + 5, yB + 1) + A(xA + 6, yA + 6) * B(xB + 6, yB + 1) + A(xA + 6, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 6, yC + 2) = A(xA + 6, yA + 0) * B(xB + 0, yB + 2) + A(xA + 6, yA + 1) * B(xB + 1, yB + 2) + A(xA + 6, yA + 2) * B(xB + 2, yB + 2) + A(xA + 6, yA + 3) * B(xB + 3, yB + 2) + A(xA + 6, yA + 4) * B(xB + 4, yB + 2) + A(xA + 6, yA + 5) * B(xB + 5, yB + 2) + A(xA + 6, yA + 6) * B(xB + 6, yB + 2) + A(xA + 6, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 6, yC + 3) = A(xA + 6, yA + 0) * B(xB + 0, yB + 3) + A(xA + 6, yA + 1) * B(xB + 1, yB + 3) + A(xA + 6, yA + 2) * B(xB + 2, yB + 3) + A(xA + 6, yA + 3) * B(xB + 3, yB + 3) + A(xA + 6, yA + 4) * B(xB + 4, yB + 3) + A(xA + 6, yA + 5) * B(xB + 5, yB + 3) + A(xA + 6, yA + 6) * B(xB + 6, yB + 3) + A(xA + 6, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 6, yC + 4) = A(xA + 6, yA + 0) * B(xB + 0, yB + 4) + A(xA + 6, yA + 1) * B(xB + 1, yB + 4) + A(xA + 6, yA + 2) * B(xB + 2, yB + 4) + A(xA + 6, yA + 3) * B(xB + 3, yB + 4) + A(xA + 6, yA + 4) * B(xB + 4, yB + 4) + A(xA + 6, yA + 5) * B(xB + 5, yB + 4) + A(xA + 6, yA + 6) * B(xB + 6, yB + 4) + A(xA + 6, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 6, yC + 5) = A(xA + 6, yA + 0) * B(xB + 0, yB + 5) + A(xA + 6, yA + 1) * B(xB + 1, yB + 5) + A(xA + 6, yA + 2) * B(xB + 2, yB + 5) + A(xA + 6, yA + 3) * B(xB + 3, yB + 5) + A(xA + 6, yA + 4) * B(xB + 4, yB + 5) + A(xA + 6, yA + 5) * B(xB + 5, yB + 5) + A(xA + 6, yA + 6) * B(xB + 6, yB + 5) + A(xA + 6, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 6, yC + 6) = A(xA + 6, yA + 0) * B(xB + 0, yB + 6) + A(xA + 6, yA + 1) * B(xB + 1, yB + 6) + A(xA + 6, yA + 2) * B(xB + 2, yB + 6) + A(xA + 6, yA + 3) * B(xB + 3, yB + 6) + A(xA + 6, yA + 4) * B(xB + 4, yB + 6) + A(xA + 6, yA + 5) * B(xB + 5, yB + 6) + A(xA + 6, yA + 6) * B(xB + 6, yB + 6) + A(xA + 6, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 6, yC + 7) = A(xA + 6, yA + 0) * B(xB + 0, yB + 7) + A(xA + 6, yA + 1) * B(xB + 1, yB + 7) + A(xA + 6, yA + 2) * B(xB + 2, yB + 7) + A(xA + 6, yA + 3) * B(xB + 3, yB + 7) + A(xA + 6, yA + 4) * B(xB + 4, yB + 7) + A(xA + 6, yA + 5) * B(xB + 5, yB + 7) + A(xA + 6, yA + 6) * B(xB + 6, yB + 7) + A(xA + 6, yA + 7) * B(xB + 7, yB + 7);
-    C(xC + 7, yC + 0) = A(xA + 7, yA + 0) * B(xB + 0, yB + 0) + A(xA + 7, yA + 1) * B(xB + 1, yB + 0) + A(xA + 7, yA + 2) * B(xB + 2, yB + 0) + A(xA + 7, yA + 3) * B(xB + 3, yB + 0) + A(xA + 7, yA + 4) * B(xB + 4, yB + 0) + A(xA + 7, yA + 5) * B(xB + 5, yB + 0) + A(xA + 7, yA + 6) * B(xB + 6, yB + 0) + A(xA + 7, yA + 7) * B(xB + 7, yB + 0);
-    C(xC + 7, yC + 1) = A(xA + 7, yA + 0) * B(xB + 0, yB + 1) + A(xA + 7, yA + 1) * B(xB + 1, yB + 1) + A(xA + 7, yA + 2) * B(xB + 2, yB + 1) + A(xA + 7, yA + 3) * B(xB + 3, yB + 1) + A(xA + 7, yA + 4) * B(xB + 4, yB + 1) + A(xA + 7, yA + 5) * B(xB + 5, yB + 1) + A(xA + 7, yA + 6) * B(xB + 6, yB + 1) + A(xA + 7, yA + 7) * B(xB + 7, yB + 1);
-    C(xC + 7, yC + 2) = A(xA + 7, yA + 0) * B(xB + 0, yB + 2) + A(xA + 7, yA + 1) * B(xB + 1, yB + 2) + A(xA + 7, yA + 2) * B(xB + 2, yB + 2) + A(xA + 7, yA + 3) * B(xB + 3, yB + 2) + A(xA + 7, yA + 4) * B(xB + 4, yB + 2) + A(xA + 7, yA + 5) * B(xB + 5, yB + 2) + A(xA + 7, yA + 6) * B(xB + 6, yB + 2) + A(xA + 7, yA + 7) * B(xB + 7, yB + 2);
-    C(xC + 7, yC + 3) = A(xA + 7, yA + 0) * B(xB + 0, yB + 3) + A(xA + 7, yA + 1) * B(xB + 1, yB + 3) + A(xA + 7, yA + 2) * B(xB + 2, yB + 3) + A(xA + 7, yA + 3) * B(xB + 3, yB + 3) + A(xA + 7, yA + 4) * B(xB + 4, yB + 3) + A(xA + 7, yA + 5) * B(xB + 5, yB + 3) + A(xA + 7, yA + 6) * B(xB + 6, yB + 3) + A(xA + 7, yA + 7) * B(xB + 7, yB + 3);
-    C(xC + 7, yC + 4) = A(xA + 7, yA + 0) * B(xB + 0, yB + 4) + A(xA + 7, yA + 1) * B(xB + 1, yB + 4) + A(xA + 7, yA + 2) * B(xB + 2, yB + 4) + A(xA + 7, yA + 3) * B(xB + 3, yB + 4) + A(xA + 7, yA + 4) * B(xB + 4, yB + 4) + A(xA + 7, yA + 5) * B(xB + 5, yB + 4) + A(xA + 7, yA + 6) * B(xB + 6, yB + 4) + A(xA + 7, yA + 7) * B(xB + 7, yB + 4);
-    C(xC + 7, yC + 5) = A(xA + 7, yA + 0) * B(xB + 0, yB + 5) + A(xA + 7, yA + 1) * B(xB + 1, yB + 5) + A(xA + 7, yA + 2) * B(xB + 2, yB + 5) + A(xA + 7, yA + 3) * B(xB + 3, yB + 5) + A(xA + 7, yA + 4) * B(xB + 4, yB + 5) + A(xA + 7, yA + 5) * B(xB + 5, yB + 5) + A(xA + 7, yA + 6) * B(xB + 6, yB + 5) + A(xA + 7, yA + 7) * B(xB + 7, yB + 5);
-    C(xC + 7, yC + 6) = A(xA + 7, yA + 0) * B(xB + 0, yB + 6) + A(xA + 7, yA + 1) * B(xB + 1, yB + 6) + A(xA + 7, yA + 2) * B(xB + 2, yB + 6) + A(xA + 7, yA + 3) * B(xB + 3, yB + 6) + A(xA + 7, yA + 4) * B(xB + 4, yB + 6) + A(xA + 7, yA + 5) * B(xB + 5, yB + 6) + A(xA + 7, yA + 6) * B(xB + 6, yB + 6) + A(xA + 7, yA + 7) * B(xB + 7, yB + 6);
-    C(xC + 7, yC + 7) = A(xA + 7, yA + 0) * B(xB + 0, yB + 7) + A(xA + 7, yA + 1) * B(xB + 1, yB + 7) + A(xA + 7, yA + 2) * B(xB + 2, yB + 7) + A(xA + 7, yA + 3) * B(xB + 3, yB + 7) + A(xA + 7, yA + 4) * B(xB + 4, yB + 7) + A(xA + 7, yA + 5) * B(xB + 5, yB + 7) + A(xA + 7, yA + 6) * B(xB + 6, yB + 7) + A(xA + 7, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 0, yC + 0) += A(xA + 0, yA + 0) * B(xB + 0, yB + 0) + A(xA + 0, yA + 1) * B(xB + 1, yB + 0) + A(xA + 0, yA + 2) * B(xB + 2, yB + 0) + A(xA + 0, yA + 3) * B(xB + 3, yB + 0) + A(xA + 0, yA + 4) * B(xB + 4, yB + 0) + A(xA + 0, yA + 5) * B(xB + 5, yB + 0) + A(xA + 0, yA + 6) * B(xB + 6, yB + 0) + A(xA + 0, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 0, yC + 1) += A(xA + 0, yA + 0) * B(xB + 0, yB + 1) + A(xA + 0, yA + 1) * B(xB + 1, yB + 1) + A(xA + 0, yA + 2) * B(xB + 2, yB + 1) + A(xA + 0, yA + 3) * B(xB + 3, yB + 1) + A(xA + 0, yA + 4) * B(xB + 4, yB + 1) + A(xA + 0, yA + 5) * B(xB + 5, yB + 1) + A(xA + 0, yA + 6) * B(xB + 6, yB + 1) + A(xA + 0, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 0, yC + 2) += A(xA + 0, yA + 0) * B(xB + 0, yB + 2) + A(xA + 0, yA + 1) * B(xB + 1, yB + 2) + A(xA + 0, yA + 2) * B(xB + 2, yB + 2) + A(xA + 0, yA + 3) * B(xB + 3, yB + 2) + A(xA + 0, yA + 4) * B(xB + 4, yB + 2) + A(xA + 0, yA + 5) * B(xB + 5, yB + 2) + A(xA + 0, yA + 6) * B(xB + 6, yB + 2) + A(xA + 0, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 0, yC + 3) += A(xA + 0, yA + 0) * B(xB + 0, yB + 3) + A(xA + 0, yA + 1) * B(xB + 1, yB + 3) + A(xA + 0, yA + 2) * B(xB + 2, yB + 3) + A(xA + 0, yA + 3) * B(xB + 3, yB + 3) + A(xA + 0, yA + 4) * B(xB + 4, yB + 3) + A(xA + 0, yA + 5) * B(xB + 5, yB + 3) + A(xA + 0, yA + 6) * B(xB + 6, yB + 3) + A(xA + 0, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 0, yC + 4) += A(xA + 0, yA + 0) * B(xB + 0, yB + 4) + A(xA + 0, yA + 1) * B(xB + 1, yB + 4) + A(xA + 0, yA + 2) * B(xB + 2, yB + 4) + A(xA + 0, yA + 3) * B(xB + 3, yB + 4) + A(xA + 0, yA + 4) * B(xB + 4, yB + 4) + A(xA + 0, yA + 5) * B(xB + 5, yB + 4) + A(xA + 0, yA + 6) * B(xB + 6, yB + 4) + A(xA + 0, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 0, yC + 5) += A(xA + 0, yA + 0) * B(xB + 0, yB + 5) + A(xA + 0, yA + 1) * B(xB + 1, yB + 5) + A(xA + 0, yA + 2) * B(xB + 2, yB + 5) + A(xA + 0, yA + 3) * B(xB + 3, yB + 5) + A(xA + 0, yA + 4) * B(xB + 4, yB + 5) + A(xA + 0, yA + 5) * B(xB + 5, yB + 5) + A(xA + 0, yA + 6) * B(xB + 6, yB + 5) + A(xA + 0, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 0, yC + 6) += A(xA + 0, yA + 0) * B(xB + 0, yB + 6) + A(xA + 0, yA + 1) * B(xB + 1, yB + 6) + A(xA + 0, yA + 2) * B(xB + 2, yB + 6) + A(xA + 0, yA + 3) * B(xB + 3, yB + 6) + A(xA + 0, yA + 4) * B(xB + 4, yB + 6) + A(xA + 0, yA + 5) * B(xB + 5, yB + 6) + A(xA + 0, yA + 6) * B(xB + 6, yB + 6) + A(xA + 0, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 0, yC + 7) += A(xA + 0, yA + 0) * B(xB + 0, yB + 7) + A(xA + 0, yA + 1) * B(xB + 1, yB + 7) + A(xA + 0, yA + 2) * B(xB + 2, yB + 7) + A(xA + 0, yA + 3) * B(xB + 3, yB + 7) + A(xA + 0, yA + 4) * B(xB + 4, yB + 7) + A(xA + 0, yA + 5) * B(xB + 5, yB + 7) + A(xA + 0, yA + 6) * B(xB + 6, yB + 7) + A(xA + 0, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 1, yC + 0) += A(xA + 1, yA + 0) * B(xB + 0, yB + 0) + A(xA + 1, yA + 1) * B(xB + 1, yB + 0) + A(xA + 1, yA + 2) * B(xB + 2, yB + 0) + A(xA + 1, yA + 3) * B(xB + 3, yB + 0) + A(xA + 1, yA + 4) * B(xB + 4, yB + 0) + A(xA + 1, yA + 5) * B(xB + 5, yB + 0) + A(xA + 1, yA + 6) * B(xB + 6, yB + 0) + A(xA + 1, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 1, yC + 1) += A(xA + 1, yA + 0) * B(xB + 0, yB + 1) + A(xA + 1, yA + 1) * B(xB + 1, yB + 1) + A(xA + 1, yA + 2) * B(xB + 2, yB + 1) + A(xA + 1, yA + 3) * B(xB + 3, yB + 1) + A(xA + 1, yA + 4) * B(xB + 4, yB + 1) + A(xA + 1, yA + 5) * B(xB + 5, yB + 1) + A(xA + 1, yA + 6) * B(xB + 6, yB + 1) + A(xA + 1, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 1, yC + 2) += A(xA + 1, yA + 0) * B(xB + 0, yB + 2) + A(xA + 1, yA + 1) * B(xB + 1, yB + 2) + A(xA + 1, yA + 2) * B(xB + 2, yB + 2) + A(xA + 1, yA + 3) * B(xB + 3, yB + 2) + A(xA + 1, yA + 4) * B(xB + 4, yB + 2) + A(xA + 1, yA + 5) * B(xB + 5, yB + 2) + A(xA + 1, yA + 6) * B(xB + 6, yB + 2) + A(xA + 1, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 1, yC + 3) += A(xA + 1, yA + 0) * B(xB + 0, yB + 3) + A(xA + 1, yA + 1) * B(xB + 1, yB + 3) + A(xA + 1, yA + 2) * B(xB + 2, yB + 3) + A(xA + 1, yA + 3) * B(xB + 3, yB + 3) + A(xA + 1, yA + 4) * B(xB + 4, yB + 3) + A(xA + 1, yA + 5) * B(xB + 5, yB + 3) + A(xA + 1, yA + 6) * B(xB + 6, yB + 3) + A(xA + 1, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 1, yC + 4) += A(xA + 1, yA + 0) * B(xB + 0, yB + 4) + A(xA + 1, yA + 1) * B(xB + 1, yB + 4) + A(xA + 1, yA + 2) * B(xB + 2, yB + 4) + A(xA + 1, yA + 3) * B(xB + 3, yB + 4) + A(xA + 1, yA + 4) * B(xB + 4, yB + 4) + A(xA + 1, yA + 5) * B(xB + 5, yB + 4) + A(xA + 1, yA + 6) * B(xB + 6, yB + 4) + A(xA + 1, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 1, yC + 5) += A(xA + 1, yA + 0) * B(xB + 0, yB + 5) + A(xA + 1, yA + 1) * B(xB + 1, yB + 5) + A(xA + 1, yA + 2) * B(xB + 2, yB + 5) + A(xA + 1, yA + 3) * B(xB + 3, yB + 5) + A(xA + 1, yA + 4) * B(xB + 4, yB + 5) + A(xA + 1, yA + 5) * B(xB + 5, yB + 5) + A(xA + 1, yA + 6) * B(xB + 6, yB + 5) + A(xA + 1, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 1, yC + 6) += A(xA + 1, yA + 0) * B(xB + 0, yB + 6) + A(xA + 1, yA + 1) * B(xB + 1, yB + 6) + A(xA + 1, yA + 2) * B(xB + 2, yB + 6) + A(xA + 1, yA + 3) * B(xB + 3, yB + 6) + A(xA + 1, yA + 4) * B(xB + 4, yB + 6) + A(xA + 1, yA + 5) * B(xB + 5, yB + 6) + A(xA + 1, yA + 6) * B(xB + 6, yB + 6) + A(xA + 1, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 1, yC + 7) += A(xA + 1, yA + 0) * B(xB + 0, yB + 7) + A(xA + 1, yA + 1) * B(xB + 1, yB + 7) + A(xA + 1, yA + 2) * B(xB + 2, yB + 7) + A(xA + 1, yA + 3) * B(xB + 3, yB + 7) + A(xA + 1, yA + 4) * B(xB + 4, yB + 7) + A(xA + 1, yA + 5) * B(xB + 5, yB + 7) + A(xA + 1, yA + 6) * B(xB + 6, yB + 7) + A(xA + 1, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 2, yC + 0) += A(xA + 2, yA + 0) * B(xB + 0, yB + 0) + A(xA + 2, yA + 1) * B(xB + 1, yB + 0) + A(xA + 2, yA + 2) * B(xB + 2, yB + 0) + A(xA + 2, yA + 3) * B(xB + 3, yB + 0) + A(xA + 2, yA + 4) * B(xB + 4, yB + 0) + A(xA + 2, yA + 5) * B(xB + 5, yB + 0) + A(xA + 2, yA + 6) * B(xB + 6, yB + 0) + A(xA + 2, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 2, yC + 1) += A(xA + 2, yA + 0) * B(xB + 0, yB + 1) + A(xA + 2, yA + 1) * B(xB + 1, yB + 1) + A(xA + 2, yA + 2) * B(xB + 2, yB + 1) + A(xA + 2, yA + 3) * B(xB + 3, yB + 1) + A(xA + 2, yA + 4) * B(xB + 4, yB + 1) + A(xA + 2, yA + 5) * B(xB + 5, yB + 1) + A(xA + 2, yA + 6) * B(xB + 6, yB + 1) + A(xA + 2, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 2, yC + 2) += A(xA + 2, yA + 0) * B(xB + 0, yB + 2) + A(xA + 2, yA + 1) * B(xB + 1, yB + 2) + A(xA + 2, yA + 2) * B(xB + 2, yB + 2) + A(xA + 2, yA + 3) * B(xB + 3, yB + 2) + A(xA + 2, yA + 4) * B(xB + 4, yB + 2) + A(xA + 2, yA + 5) * B(xB + 5, yB + 2) + A(xA + 2, yA + 6) * B(xB + 6, yB + 2) + A(xA + 2, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 2, yC + 3) += A(xA + 2, yA + 0) * B(xB + 0, yB + 3) + A(xA + 2, yA + 1) * B(xB + 1, yB + 3) + A(xA + 2, yA + 2) * B(xB + 2, yB + 3) + A(xA + 2, yA + 3) * B(xB + 3, yB + 3) + A(xA + 2, yA + 4) * B(xB + 4, yB + 3) + A(xA + 2, yA + 5) * B(xB + 5, yB + 3) + A(xA + 2, yA + 6) * B(xB + 6, yB + 3) + A(xA + 2, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 2, yC + 4) += A(xA + 2, yA + 0) * B(xB + 0, yB + 4) + A(xA + 2, yA + 1) * B(xB + 1, yB + 4) + A(xA + 2, yA + 2) * B(xB + 2, yB + 4) + A(xA + 2, yA + 3) * B(xB + 3, yB + 4) + A(xA + 2, yA + 4) * B(xB + 4, yB + 4) + A(xA + 2, yA + 5) * B(xB + 5, yB + 4) + A(xA + 2, yA + 6) * B(xB + 6, yB + 4) + A(xA + 2, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 2, yC + 5) += A(xA + 2, yA + 0) * B(xB + 0, yB + 5) + A(xA + 2, yA + 1) * B(xB + 1, yB + 5) + A(xA + 2, yA + 2) * B(xB + 2, yB + 5) + A(xA + 2, yA + 3) * B(xB + 3, yB + 5) + A(xA + 2, yA + 4) * B(xB + 4, yB + 5) + A(xA + 2, yA + 5) * B(xB + 5, yB + 5) + A(xA + 2, yA + 6) * B(xB + 6, yB + 5) + A(xA + 2, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 2, yC + 6) += A(xA + 2, yA + 0) * B(xB + 0, yB + 6) + A(xA + 2, yA + 1) * B(xB + 1, yB + 6) + A(xA + 2, yA + 2) * B(xB + 2, yB + 6) + A(xA + 2, yA + 3) * B(xB + 3, yB + 6) + A(xA + 2, yA + 4) * B(xB + 4, yB + 6) + A(xA + 2, yA + 5) * B(xB + 5, yB + 6) + A(xA + 2, yA + 6) * B(xB + 6, yB + 6) + A(xA + 2, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 2, yC + 7) += A(xA + 2, yA + 0) * B(xB + 0, yB + 7) + A(xA + 2, yA + 1) * B(xB + 1, yB + 7) + A(xA + 2, yA + 2) * B(xB + 2, yB + 7) + A(xA + 2, yA + 3) * B(xB + 3, yB + 7) + A(xA + 2, yA + 4) * B(xB + 4, yB + 7) + A(xA + 2, yA + 5) * B(xB + 5, yB + 7) + A(xA + 2, yA + 6) * B(xB + 6, yB + 7) + A(xA + 2, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 3, yC + 0) += A(xA + 3, yA + 0) * B(xB + 0, yB + 0) + A(xA + 3, yA + 1) * B(xB + 1, yB + 0) + A(xA + 3, yA + 2) * B(xB + 2, yB + 0) + A(xA + 3, yA + 3) * B(xB + 3, yB + 0) + A(xA + 3, yA + 4) * B(xB + 4, yB + 0) + A(xA + 3, yA + 5) * B(xB + 5, yB + 0) + A(xA + 3, yA + 6) * B(xB + 6, yB + 0) + A(xA + 3, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 3, yC + 1) += A(xA + 3, yA + 0) * B(xB + 0, yB + 1) + A(xA + 3, yA + 1) * B(xB + 1, yB + 1) + A(xA + 3, yA + 2) * B(xB + 2, yB + 1) + A(xA + 3, yA + 3) * B(xB + 3, yB + 1) + A(xA + 3, yA + 4) * B(xB + 4, yB + 1) + A(xA + 3, yA + 5) * B(xB + 5, yB + 1) + A(xA + 3, yA + 6) * B(xB + 6, yB + 1) + A(xA + 3, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 3, yC + 2) += A(xA + 3, yA + 0) * B(xB + 0, yB + 2) + A(xA + 3, yA + 1) * B(xB + 1, yB + 2) + A(xA + 3, yA + 2) * B(xB + 2, yB + 2) + A(xA + 3, yA + 3) * B(xB + 3, yB + 2) + A(xA + 3, yA + 4) * B(xB + 4, yB + 2) + A(xA + 3, yA + 5) * B(xB + 5, yB + 2) + A(xA + 3, yA + 6) * B(xB + 6, yB + 2) + A(xA + 3, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 3, yC + 3) += A(xA + 3, yA + 0) * B(xB + 0, yB + 3) + A(xA + 3, yA + 1) * B(xB + 1, yB + 3) + A(xA + 3, yA + 2) * B(xB + 2, yB + 3) + A(xA + 3, yA + 3) * B(xB + 3, yB + 3) + A(xA + 3, yA + 4) * B(xB + 4, yB + 3) + A(xA + 3, yA + 5) * B(xB + 5, yB + 3) + A(xA + 3, yA + 6) * B(xB + 6, yB + 3) + A(xA + 3, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 3, yC + 4) += A(xA + 3, yA + 0) * B(xB + 0, yB + 4) + A(xA + 3, yA + 1) * B(xB + 1, yB + 4) + A(xA + 3, yA + 2) * B(xB + 2, yB + 4) + A(xA + 3, yA + 3) * B(xB + 3, yB + 4) + A(xA + 3, yA + 4) * B(xB + 4, yB + 4) + A(xA + 3, yA + 5) * B(xB + 5, yB + 4) + A(xA + 3, yA + 6) * B(xB + 6, yB + 4) + A(xA + 3, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 3, yC + 5) += A(xA + 3, yA + 0) * B(xB + 0, yB + 5) + A(xA + 3, yA + 1) * B(xB + 1, yB + 5) + A(xA + 3, yA + 2) * B(xB + 2, yB + 5) + A(xA + 3, yA + 3) * B(xB + 3, yB + 5) + A(xA + 3, yA + 4) * B(xB + 4, yB + 5) + A(xA + 3, yA + 5) * B(xB + 5, yB + 5) + A(xA + 3, yA + 6) * B(xB + 6, yB + 5) + A(xA + 3, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 3, yC + 6) += A(xA + 3, yA + 0) * B(xB + 0, yB + 6) + A(xA + 3, yA + 1) * B(xB + 1, yB + 6) + A(xA + 3, yA + 2) * B(xB + 2, yB + 6) + A(xA + 3, yA + 3) * B(xB + 3, yB + 6) + A(xA + 3, yA + 4) * B(xB + 4, yB + 6) + A(xA + 3, yA + 5) * B(xB + 5, yB + 6) + A(xA + 3, yA + 6) * B(xB + 6, yB + 6) + A(xA + 3, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 3, yC + 7) += A(xA + 3, yA + 0) * B(xB + 0, yB + 7) + A(xA + 3, yA + 1) * B(xB + 1, yB + 7) + A(xA + 3, yA + 2) * B(xB + 2, yB + 7) + A(xA + 3, yA + 3) * B(xB + 3, yB + 7) + A(xA + 3, yA + 4) * B(xB + 4, yB + 7) + A(xA + 3, yA + 5) * B(xB + 5, yB + 7) + A(xA + 3, yA + 6) * B(xB + 6, yB + 7) + A(xA + 3, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 4, yC + 0) += A(xA + 4, yA + 0) * B(xB + 0, yB + 0) + A(xA + 4, yA + 1) * B(xB + 1, yB + 0) + A(xA + 4, yA + 2) * B(xB + 2, yB + 0) + A(xA + 4, yA + 3) * B(xB + 3, yB + 0) + A(xA + 4, yA + 4) * B(xB + 4, yB + 0) + A(xA + 4, yA + 5) * B(xB + 5, yB + 0) + A(xA + 4, yA + 6) * B(xB + 6, yB + 0) + A(xA + 4, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 4, yC + 1) += A(xA + 4, yA + 0) * B(xB + 0, yB + 1) + A(xA + 4, yA + 1) * B(xB + 1, yB + 1) + A(xA + 4, yA + 2) * B(xB + 2, yB + 1) + A(xA + 4, yA + 3) * B(xB + 3, yB + 1) + A(xA + 4, yA + 4) * B(xB + 4, yB + 1) + A(xA + 4, yA + 5) * B(xB + 5, yB + 1) + A(xA + 4, yA + 6) * B(xB + 6, yB + 1) + A(xA + 4, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 4, yC + 2) += A(xA + 4, yA + 0) * B(xB + 0, yB + 2) + A(xA + 4, yA + 1) * B(xB + 1, yB + 2) + A(xA + 4, yA + 2) * B(xB + 2, yB + 2) + A(xA + 4, yA + 3) * B(xB + 3, yB + 2) + A(xA + 4, yA + 4) * B(xB + 4, yB + 2) + A(xA + 4, yA + 5) * B(xB + 5, yB + 2) + A(xA + 4, yA + 6) * B(xB + 6, yB + 2) + A(xA + 4, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 4, yC + 3) += A(xA + 4, yA + 0) * B(xB + 0, yB + 3) + A(xA + 4, yA + 1) * B(xB + 1, yB + 3) + A(xA + 4, yA + 2) * B(xB + 2, yB + 3) + A(xA + 4, yA + 3) * B(xB + 3, yB + 3) + A(xA + 4, yA + 4) * B(xB + 4, yB + 3) + A(xA + 4, yA + 5) * B(xB + 5, yB + 3) + A(xA + 4, yA + 6) * B(xB + 6, yB + 3) + A(xA + 4, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 4, yC + 4) += A(xA + 4, yA + 0) * B(xB + 0, yB + 4) + A(xA + 4, yA + 1) * B(xB + 1, yB + 4) + A(xA + 4, yA + 2) * B(xB + 2, yB + 4) + A(xA + 4, yA + 3) * B(xB + 3, yB + 4) + A(xA + 4, yA + 4) * B(xB + 4, yB + 4) + A(xA + 4, yA + 5) * B(xB + 5, yB + 4) + A(xA + 4, yA + 6) * B(xB + 6, yB + 4) + A(xA + 4, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 4, yC + 5) += A(xA + 4, yA + 0) * B(xB + 0, yB + 5) + A(xA + 4, yA + 1) * B(xB + 1, yB + 5) + A(xA + 4, yA + 2) * B(xB + 2, yB + 5) + A(xA + 4, yA + 3) * B(xB + 3, yB + 5) + A(xA + 4, yA + 4) * B(xB + 4, yB + 5) + A(xA + 4, yA + 5) * B(xB + 5, yB + 5) + A(xA + 4, yA + 6) * B(xB + 6, yB + 5) + A(xA + 4, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 4, yC + 6) += A(xA + 4, yA + 0) * B(xB + 0, yB + 6) + A(xA + 4, yA + 1) * B(xB + 1, yB + 6) + A(xA + 4, yA + 2) * B(xB + 2, yB + 6) + A(xA + 4, yA + 3) * B(xB + 3, yB + 6) + A(xA + 4, yA + 4) * B(xB + 4, yB + 6) + A(xA + 4, yA + 5) * B(xB + 5, yB + 6) + A(xA + 4, yA + 6) * B(xB + 6, yB + 6) + A(xA + 4, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 4, yC + 7) += A(xA + 4, yA + 0) * B(xB + 0, yB + 7) + A(xA + 4, yA + 1) * B(xB + 1, yB + 7) + A(xA + 4, yA + 2) * B(xB + 2, yB + 7) + A(xA + 4, yA + 3) * B(xB + 3, yB + 7) + A(xA + 4, yA + 4) * B(xB + 4, yB + 7) + A(xA + 4, yA + 5) * B(xB + 5, yB + 7) + A(xA + 4, yA + 6) * B(xB + 6, yB + 7) + A(xA + 4, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 5, yC + 0) += A(xA + 5, yA + 0) * B(xB + 0, yB + 0) + A(xA + 5, yA + 1) * B(xB + 1, yB + 0) + A(xA + 5, yA + 2) * B(xB + 2, yB + 0) + A(xA + 5, yA + 3) * B(xB + 3, yB + 0) + A(xA + 5, yA + 4) * B(xB + 4, yB + 0) + A(xA + 5, yA + 5) * B(xB + 5, yB + 0) + A(xA + 5, yA + 6) * B(xB + 6, yB + 0) + A(xA + 5, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 5, yC + 1) += A(xA + 5, yA + 0) * B(xB + 0, yB + 1) + A(xA + 5, yA + 1) * B(xB + 1, yB + 1) + A(xA + 5, yA + 2) * B(xB + 2, yB + 1) + A(xA + 5, yA + 3) * B(xB + 3, yB + 1) + A(xA + 5, yA + 4) * B(xB + 4, yB + 1) + A(xA + 5, yA + 5) * B(xB + 5, yB + 1) + A(xA + 5, yA + 6) * B(xB + 6, yB + 1) + A(xA + 5, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 5, yC + 2) += A(xA + 5, yA + 0) * B(xB + 0, yB + 2) + A(xA + 5, yA + 1) * B(xB + 1, yB + 2) + A(xA + 5, yA + 2) * B(xB + 2, yB + 2) + A(xA + 5, yA + 3) * B(xB + 3, yB + 2) + A(xA + 5, yA + 4) * B(xB + 4, yB + 2) + A(xA + 5, yA + 5) * B(xB + 5, yB + 2) + A(xA + 5, yA + 6) * B(xB + 6, yB + 2) + A(xA + 5, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 5, yC + 3) += A(xA + 5, yA + 0) * B(xB + 0, yB + 3) + A(xA + 5, yA + 1) * B(xB + 1, yB + 3) + A(xA + 5, yA + 2) * B(xB + 2, yB + 3) + A(xA + 5, yA + 3) * B(xB + 3, yB + 3) + A(xA + 5, yA + 4) * B(xB + 4, yB + 3) + A(xA + 5, yA + 5) * B(xB + 5, yB + 3) + A(xA + 5, yA + 6) * B(xB + 6, yB + 3) + A(xA + 5, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 5, yC + 4) += A(xA + 5, yA + 0) * B(xB + 0, yB + 4) + A(xA + 5, yA + 1) * B(xB + 1, yB + 4) + A(xA + 5, yA + 2) * B(xB + 2, yB + 4) + A(xA + 5, yA + 3) * B(xB + 3, yB + 4) + A(xA + 5, yA + 4) * B(xB + 4, yB + 4) + A(xA + 5, yA + 5) * B(xB + 5, yB + 4) + A(xA + 5, yA + 6) * B(xB + 6, yB + 4) + A(xA + 5, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 5, yC + 5) += A(xA + 5, yA + 0) * B(xB + 0, yB + 5) + A(xA + 5, yA + 1) * B(xB + 1, yB + 5) + A(xA + 5, yA + 2) * B(xB + 2, yB + 5) + A(xA + 5, yA + 3) * B(xB + 3, yB + 5) + A(xA + 5, yA + 4) * B(xB + 4, yB + 5) + A(xA + 5, yA + 5) * B(xB + 5, yB + 5) + A(xA + 5, yA + 6) * B(xB + 6, yB + 5) + A(xA + 5, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 5, yC + 6) += A(xA + 5, yA + 0) * B(xB + 0, yB + 6) + A(xA + 5, yA + 1) * B(xB + 1, yB + 6) + A(xA + 5, yA + 2) * B(xB + 2, yB + 6) + A(xA + 5, yA + 3) * B(xB + 3, yB + 6) + A(xA + 5, yA + 4) * B(xB + 4, yB + 6) + A(xA + 5, yA + 5) * B(xB + 5, yB + 6) + A(xA + 5, yA + 6) * B(xB + 6, yB + 6) + A(xA + 5, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 5, yC + 7) += A(xA + 5, yA + 0) * B(xB + 0, yB + 7) + A(xA + 5, yA + 1) * B(xB + 1, yB + 7) + A(xA + 5, yA + 2) * B(xB + 2, yB + 7) + A(xA + 5, yA + 3) * B(xB + 3, yB + 7) + A(xA + 5, yA + 4) * B(xB + 4, yB + 7) + A(xA + 5, yA + 5) * B(xB + 5, yB + 7) + A(xA + 5, yA + 6) * B(xB + 6, yB + 7) + A(xA + 5, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 6, yC + 0) += A(xA + 6, yA + 0) * B(xB + 0, yB + 0) + A(xA + 6, yA + 1) * B(xB + 1, yB + 0) + A(xA + 6, yA + 2) * B(xB + 2, yB + 0) + A(xA + 6, yA + 3) * B(xB + 3, yB + 0) + A(xA + 6, yA + 4) * B(xB + 4, yB + 0) + A(xA + 6, yA + 5) * B(xB + 5, yB + 0) + A(xA + 6, yA + 6) * B(xB + 6, yB + 0) + A(xA + 6, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 6, yC + 1) += A(xA + 6, yA + 0) * B(xB + 0, yB + 1) + A(xA + 6, yA + 1) * B(xB + 1, yB + 1) + A(xA + 6, yA + 2) * B(xB + 2, yB + 1) + A(xA + 6, yA + 3) * B(xB + 3, yB + 1) + A(xA + 6, yA + 4) * B(xB + 4, yB + 1) + A(xA + 6, yA + 5) * B(xB + 5, yB + 1) + A(xA + 6, yA + 6) * B(xB + 6, yB + 1) + A(xA + 6, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 6, yC + 2) += A(xA + 6, yA + 0) * B(xB + 0, yB + 2) + A(xA + 6, yA + 1) * B(xB + 1, yB + 2) + A(xA + 6, yA + 2) * B(xB + 2, yB + 2) + A(xA + 6, yA + 3) * B(xB + 3, yB + 2) + A(xA + 6, yA + 4) * B(xB + 4, yB + 2) + A(xA + 6, yA + 5) * B(xB + 5, yB + 2) + A(xA + 6, yA + 6) * B(xB + 6, yB + 2) + A(xA + 6, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 6, yC + 3) += A(xA + 6, yA + 0) * B(xB + 0, yB + 3) + A(xA + 6, yA + 1) * B(xB + 1, yB + 3) + A(xA + 6, yA + 2) * B(xB + 2, yB + 3) + A(xA + 6, yA + 3) * B(xB + 3, yB + 3) + A(xA + 6, yA + 4) * B(xB + 4, yB + 3) + A(xA + 6, yA + 5) * B(xB + 5, yB + 3) + A(xA + 6, yA + 6) * B(xB + 6, yB + 3) + A(xA + 6, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 6, yC + 4) += A(xA + 6, yA + 0) * B(xB + 0, yB + 4) + A(xA + 6, yA + 1) * B(xB + 1, yB + 4) + A(xA + 6, yA + 2) * B(xB + 2, yB + 4) + A(xA + 6, yA + 3) * B(xB + 3, yB + 4) + A(xA + 6, yA + 4) * B(xB + 4, yB + 4) + A(xA + 6, yA + 5) * B(xB + 5, yB + 4) + A(xA + 6, yA + 6) * B(xB + 6, yB + 4) + A(xA + 6, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 6, yC + 5) += A(xA + 6, yA + 0) * B(xB + 0, yB + 5) + A(xA + 6, yA + 1) * B(xB + 1, yB + 5) + A(xA + 6, yA + 2) * B(xB + 2, yB + 5) + A(xA + 6, yA + 3) * B(xB + 3, yB + 5) + A(xA + 6, yA + 4) * B(xB + 4, yB + 5) + A(xA + 6, yA + 5) * B(xB + 5, yB + 5) + A(xA + 6, yA + 6) * B(xB + 6, yB + 5) + A(xA + 6, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 6, yC + 6) += A(xA + 6, yA + 0) * B(xB + 0, yB + 6) + A(xA + 6, yA + 1) * B(xB + 1, yB + 6) + A(xA + 6, yA + 2) * B(xB + 2, yB + 6) + A(xA + 6, yA + 3) * B(xB + 3, yB + 6) + A(xA + 6, yA + 4) * B(xB + 4, yB + 6) + A(xA + 6, yA + 5) * B(xB + 5, yB + 6) + A(xA + 6, yA + 6) * B(xB + 6, yB + 6) + A(xA + 6, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 6, yC + 7) += A(xA + 6, yA + 0) * B(xB + 0, yB + 7) + A(xA + 6, yA + 1) * B(xB + 1, yB + 7) + A(xA + 6, yA + 2) * B(xB + 2, yB + 7) + A(xA + 6, yA + 3) * B(xB + 3, yB + 7) + A(xA + 6, yA + 4) * B(xB + 4, yB + 7) + A(xA + 6, yA + 5) * B(xB + 5, yB + 7) + A(xA + 6, yA + 6) * B(xB + 6, yB + 7) + A(xA + 6, yA + 7) * B(xB + 7, yB + 7);
+    C(xC + 7, yC + 0) += A(xA + 7, yA + 0) * B(xB + 0, yB + 0) + A(xA + 7, yA + 1) * B(xB + 1, yB + 0) + A(xA + 7, yA + 2) * B(xB + 2, yB + 0) + A(xA + 7, yA + 3) * B(xB + 3, yB + 0) + A(xA + 7, yA + 4) * B(xB + 4, yB + 0) + A(xA + 7, yA + 5) * B(xB + 5, yB + 0) + A(xA + 7, yA + 6) * B(xB + 6, yB + 0) + A(xA + 7, yA + 7) * B(xB + 7, yB + 0);
+    C(xC + 7, yC + 1) += A(xA + 7, yA + 0) * B(xB + 0, yB + 1) + A(xA + 7, yA + 1) * B(xB + 1, yB + 1) + A(xA + 7, yA + 2) * B(xB + 2, yB + 1) + A(xA + 7, yA + 3) * B(xB + 3, yB + 1) + A(xA + 7, yA + 4) * B(xB + 4, yB + 1) + A(xA + 7, yA + 5) * B(xB + 5, yB + 1) + A(xA + 7, yA + 6) * B(xB + 6, yB + 1) + A(xA + 7, yA + 7) * B(xB + 7, yB + 1);
+    C(xC + 7, yC + 2) += A(xA + 7, yA + 0) * B(xB + 0, yB + 2) + A(xA + 7, yA + 1) * B(xB + 1, yB + 2) + A(xA + 7, yA + 2) * B(xB + 2, yB + 2) + A(xA + 7, yA + 3) * B(xB + 3, yB + 2) + A(xA + 7, yA + 4) * B(xB + 4, yB + 2) + A(xA + 7, yA + 5) * B(xB + 5, yB + 2) + A(xA + 7, yA + 6) * B(xB + 6, yB + 2) + A(xA + 7, yA + 7) * B(xB + 7, yB + 2);
+    C(xC + 7, yC + 3) += A(xA + 7, yA + 0) * B(xB + 0, yB + 3) + A(xA + 7, yA + 1) * B(xB + 1, yB + 3) + A(xA + 7, yA + 2) * B(xB + 2, yB + 3) + A(xA + 7, yA + 3) * B(xB + 3, yB + 3) + A(xA + 7, yA + 4) * B(xB + 4, yB + 3) + A(xA + 7, yA + 5) * B(xB + 5, yB + 3) + A(xA + 7, yA + 6) * B(xB + 6, yB + 3) + A(xA + 7, yA + 7) * B(xB + 7, yB + 3);
+    C(xC + 7, yC + 4) += A(xA + 7, yA + 0) * B(xB + 0, yB + 4) + A(xA + 7, yA + 1) * B(xB + 1, yB + 4) + A(xA + 7, yA + 2) * B(xB + 2, yB + 4) + A(xA + 7, yA + 3) * B(xB + 3, yB + 4) + A(xA + 7, yA + 4) * B(xB + 4, yB + 4) + A(xA + 7, yA + 5) * B(xB + 5, yB + 4) + A(xA + 7, yA + 6) * B(xB + 6, yB + 4) + A(xA + 7, yA + 7) * B(xB + 7, yB + 4);
+    C(xC + 7, yC + 5) += A(xA + 7, yA + 0) * B(xB + 0, yB + 5) + A(xA + 7, yA + 1) * B(xB + 1, yB + 5) + A(xA + 7, yA + 2) * B(xB + 2, yB + 5) + A(xA + 7, yA + 3) * B(xB + 3, yB + 5) + A(xA + 7, yA + 4) * B(xB + 4, yB + 5) + A(xA + 7, yA + 5) * B(xB + 5, yB + 5) + A(xA + 7, yA + 6) * B(xB + 6, yB + 5) + A(xA + 7, yA + 7) * B(xB + 7, yB + 5);
+    C(xC + 7, yC + 6) += A(xA + 7, yA + 0) * B(xB + 0, yB + 6) + A(xA + 7, yA + 1) * B(xB + 1, yB + 6) + A(xA + 7, yA + 2) * B(xB + 2, yB + 6) + A(xA + 7, yA + 3) * B(xB + 3, yB + 6) + A(xA + 7, yA + 4) * B(xB + 4, yB + 6) + A(xA + 7, yA + 5) * B(xB + 5, yB + 6) + A(xA + 7, yA + 6) * B(xB + 6, yB + 6) + A(xA + 7, yA + 7) * B(xB + 7, yB + 6);
+    C(xC + 7, yC + 7) += A(xA + 7, yA + 0) * B(xB + 0, yB + 7) + A(xA + 7, yA + 1) * B(xB + 1, yB + 7) + A(xA + 7, yA + 2) * B(xB + 2, yB + 7) + A(xA + 7, yA + 3) * B(xB + 3, yB + 7) + A(xA + 7, yA + 4) * B(xB + 4, yB + 7) + A(xA + 7, yA + 5) * B(xB + 5, yB + 7) + A(xA + 7, yA + 6) * B(xB + 6, yB + 7) + A(xA + 7, yA + 7) * B(xB + 7, yB + 7);
 }
 
 template <class T>
