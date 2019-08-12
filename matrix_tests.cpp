@@ -550,7 +550,50 @@ TEST(matrix, multiplication_by_scalar_in_place)
     EXPECT_EQ(n1, n2);
 }
 
-TEST(matrix, matrix_multiplication)
+TEST(matrix, matrix_by_vector_multiplication)
+{
+    Matrix<double> m(3, 3);
+    m(0, 0) = 1;
+    m(0, 1) = 2;
+    m(0, 2) = 3;
+    m(1, 0) = 4;
+    m(1, 1) = 5;
+    m(1, 2) = 6;
+    m(2, 0) = 7;
+    m(2, 1) = 8;
+    m(2, 2) = 9;
+
+    Vector<double> v1(3);
+    v1(0) = 2;
+    v1(1) = -1;
+    v1(2) = 1;
+    Vector<double> v2(3);
+    v2(0) = 3;
+    v2(1) = 9;
+    v2(2) = 15;
+
+    Matrix<double> n(2, 3);
+    n(0, 0) = 1;
+    n(0, 1) = 2;
+    n(0, 2) = 3;
+    n(1, 0) = 4;
+    n(1, 1) = 5;
+    n(1, 2) = 6;
+
+    Vector<double> u1(3);
+    u1(0) = 1;
+    u1(1) = 0;
+    u1(2) = -1;
+
+    Vector<double> u2(2);
+    u2(0) = -2;
+    u2(1) = -2;
+
+    EXPECT_EQ(m * v1, v2);
+    EXPECT_EQ(n * u1, u2);
+}
+
+TEST(matrix_mul, matrix_multiplication)
 {
     Matrix<double> m1(3, 3);
     m1(0, 0) = 1;
@@ -616,50 +659,7 @@ TEST(matrix, matrix_multiplication)
     EXPECT_EQ(I * I, I);
 }
 
-TEST(matrix, matrix_by_vector_multiplication)
-{
-    Matrix<double> m(3, 3);
-    m(0, 0) = 1;
-    m(0, 1) = 2;
-    m(0, 2) = 3;
-    m(1, 0) = 4;
-    m(1, 1) = 5;
-    m(1, 2) = 6;
-    m(2, 0) = 7;
-    m(2, 1) = 8;
-    m(2, 2) = 9;
-
-    Vector<double> v1(3);
-    v1(0) = 2;
-    v1(1) = -1;
-    v1(2) = 1;
-    Vector<double> v2(3);
-    v2(0) = 3;
-    v2(1) = 9;
-    v2(2) = 15;
-
-    Matrix<double> n(2, 3);
-    n(0, 0) = 1;
-    n(0, 1) = 2;
-    n(0, 2) = 3;
-    n(1, 0) = 4;
-    n(1, 1) = 5;
-    n(1, 2) = 6;
-
-    Vector<double> u1(3);
-    u1(0) = 1;
-    u1(1) = 0;
-    u1(2) = -1;
-
-    Vector<double> u2(2);
-    u2(0) = -2;
-    u2(1) = -2;
-
-    EXPECT_EQ(m * v1, v2);
-    EXPECT_EQ(n * u1, u2);
-}
-
-TEST(matrix, matrix_multiplication_strassen)
+TEST(matrix_mul, matrix_multiplication_strassen)
 {
     Matrix<double> m1(3, 3);
     m1(0, 0) = 1;

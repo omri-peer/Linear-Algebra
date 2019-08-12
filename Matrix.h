@@ -85,7 +85,7 @@ private:
         return i;
     }
 
-    // set A1 = A1 + B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
+    // set C1 = A1 + B1, where A1, B1 and C1 are square submatrices of A, B and C, with given starting indices in A, B, C and the size
     static void add_to_place(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         for (unsigned int i = 0; i < size; i++) {
@@ -95,22 +95,12 @@ private:
         }
     }
 
-    // set A1 = A1 - B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
+    // set C1 = A1 - B1, where A1, B1 and C1 are square submatrices of A, B and C, with given starting indices in A, B, C and the size
     static void sub_to_place(const Matrix& A, const Matrix& B, Matrix& C, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int xC, unsigned int yC, unsigned int size)
     {
         for (unsigned int i = 0; i < size; i++) {
             for (unsigned int j = 0; j < size; j++) {
                 C(xC + i, yC + j) = A(xA + i, yA + j) - B(xB + i, yB + j);
-            }
-        }
-    }
-
-    // set A1 = B1, where A1 and B1 are square submatrices of A and B, with given starting indices in A, B and the size
-    static void copy(Matrix& A, const Matrix& B, unsigned int xA, unsigned int yA, unsigned int xB, unsigned int yB, unsigned int size)
-    {
-        for (unsigned int i = 0; i < size; i++) {
-            for (unsigned int j = 0; j < size; j++) {
-                A(xA + i, yA + j) = B(xB + i, yB + j);
             }
         }
     }
