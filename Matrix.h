@@ -1,3 +1,4 @@
+// Templated matrix implementation (for the linear algebra library). 
 #pragma once
 
 #include "Vector.h"
@@ -13,8 +14,8 @@ class Matrix {
 private:
     unsigned int rows; // num of rows
     unsigned int cols; // num of columns
-    mutable T determinant = 0; // irrelevant in a non-square matrix
-    mutable unsigned int rank = 0;
+    mutable T determinant = 0; // irrelevant in a non-square matrix. Stored as a class member for better performances.
+    mutable unsigned int rank = 0; // Stored as a class member for better performances.
     mutable bool det_updated = true;  // dirty bit, may still be true in the irrelevant case of a non-square matrix
     mutable bool rank_updated = true;  // dirty bit
     std::vector<vector_t> data;       // the matrix's entries, stored as a vector of rows of the matrix, in row major fashion.
