@@ -1,3 +1,4 @@
+// Tests for Vector's functionality
 #include "Vector.h"
 #include <gtest/gtest.h>
 
