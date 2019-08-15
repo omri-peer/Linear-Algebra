@@ -18,12 +18,10 @@ Build:
 Navigate to the project's directoryת and run the commands:
 
 cd cmake-build-debug
-
 make
 
 Test:
 Navigate to the project's directory and run the commands:
 
 cd cmake-build-debug
-
 ctest -V
