@@ -15,7 +15,7 @@ Note: the Matrix<T> class overloads the * operator with the naive implementation
 However, the class contains another, more efficient, implementation of multiplication, using an optimized version of Strassen's algorithm.
 
 - Build:
-Navigate to the project's directoryת and run the commands:
+Navigate to the project's directory and run the commands:
 
 cd cmake-build-debug
 
