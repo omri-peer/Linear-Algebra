@@ -1,3 +1,4 @@
+// Tests for Manger's attack
 #include "Manger.h"
 #include <gtest/gtest.h>
 
