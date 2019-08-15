@@ -1,10 +1,11 @@
+// Templated vector implementation (for the linear algebra library). 
 #pragma once
 
 #include <iostream>
 #include <vector>
 template <class T>
 class Vector {
-    using vector_t = std::vector<T>;
+    using vector_t = std::vector<T>; // for convinency
 
 private:
     vector_t entries; // entries store the vector's entries, 0 based
