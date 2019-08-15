@@ -14,14 +14,14 @@ In addition, tests of the lll and Manger's algorithms are implemented in lll_tes
 Note: the Matrix<T> class overloads the * operator with the naive implementation of matrices  mutiplication.
 However, the class contains another, more efficient, implementation of multiplication, using an optimized version of Strassen's algorithm.
 
-Build:
+- Build:
 Navigate to the project's directoryת and run the commands:
 
 cd cmake-build-debug
 
 make
 
-Test:
+- Test:
 Navigate to the project's directory and run the commands:
 
 cd cmake-build-debug
